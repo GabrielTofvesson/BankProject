@@ -1,10 +1,12 @@
-﻿using ConsoleForms;
+﻿using Client.ConsoleForms;
+using ConsoleForms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tofvesson.Collections;
+using Client.ConsoleForms.Graphics;
 
 namespace Client
 {
@@ -15,7 +17,7 @@ namespace Client
             // Just close when anything is selected and "submitted"
             RegisterSelectListeners((s, i, v) => controller.CloseView(s), "EmptyFieldError", "IPError", "PortError", "ConnectionError");
 
-            ((InputTextBox)views.GetNamed("NetConnect")).SubmissionsListener = i =>
+            ((InputView)views.GetNamed("NetConnect")).SubmissionsListener = i =>
             {
                 bool
                     ip = ParseIP(i.Inputs[0].Text) != null,

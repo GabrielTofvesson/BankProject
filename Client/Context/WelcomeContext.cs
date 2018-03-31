@@ -1,4 +1,6 @@
-﻿using ConsoleForms;
+﻿using Client.ConsoleForms;
+using Client.ConsoleForms.Graphics;
+using ConsoleForms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +27,7 @@ namespace Client
             RegisterSelectListeners((s, i, v) => controller.CloseView(s), "DuplicateAccountError", "EmptyFieldError", "IPError", "PortError", "AuthError", "PasswordMismatchError");
 
 
-            ((InputTextBox)views.GetNamed("Login")).SubmissionsListener = i =>
+            ((InputView)views.GetNamed("Login")).SubmissionsListener = i =>
             {
                 bool success = true;
 
@@ -61,14 +63,14 @@ namespace Client
             };
 
             // For a smooth effect
-            ((InputTextBox)views.GetNamed("Login")).InputListener = (v, c, i) =>
+            ((InputView)views.GetNamed("Login")).InputListener = (v, c, i) =>
             {
                 c.BackgroundColor = v.DefaultBackgroundColor;
                 c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
                 return true;
             };
 
-            ((InputTextBox)views.GetNamed("Register")).SubmissionsListener = i =>
+            ((InputView)views.GetNamed("Register")).SubmissionsListener = i =>
             {
                 bool success = true, mismatch = false;
 
@@ -105,7 +107,7 @@ namespace Client
 
                     if (i.Inputs[1].Text.Length < 5 || i.Inputs[1].Text.StartsWith("asdfasdf") || i.Inputs[1].Text.StartsWith("asdf1234"))
                     {
-                        var warning = (DialogBox)views.GetNamed("WeakPasswordWarning");
+                        var warning = (DialogView)views.GetNamed("WeakPasswordWarning");
                         warning.RegisterSelectListener((wrn, idx, sel) =>
                         {
                             controller.CloseView(warning);
@@ -119,7 +121,7 @@ namespace Client
                 else controller.AddView(views.GetNamed("EmptyFieldError"));
             };
 
-            ((InputTextBox)views.GetNamed("Register")).InputListener = (v, c, i) =>
+            ((InputView)views.GetNamed("Register")).InputListener = (v, c, i) =>
             {
                 c.BackgroundColor = v.DefaultBackgroundColor;
                 c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;

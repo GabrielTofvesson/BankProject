@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Client;
+using Client.ConsoleForms;
+using Client.ConsoleForms.Parameters;
 using Client.Properties;
 using Common;
 using Tofvesson.Collections;

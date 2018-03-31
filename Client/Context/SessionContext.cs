@@ -1,4 +1,6 @@
-﻿using ConsoleForms;
+﻿using Client.ConsoleForms;
+using Client.ConsoleForms.Graphics;
+using ConsoleForms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +20,7 @@ namespace Client
             this.interactor = interactor;
             this.sessionID = sessionID;
 
-            ((DialogBox)views.GetNamed("Success")).RegisterSelectListener((v, i, s) =>
+            ((DialogView)views.GetNamed("Success")).RegisterSelectListener((v, i, s) =>
             {
                 interactor.Logout(sessionID);
                 manager.LoadContext(new NetContext(manager));

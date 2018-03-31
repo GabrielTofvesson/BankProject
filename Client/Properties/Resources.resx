@@ -121,16 +121,16 @@
   <data name="e_0x200" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\0x200.e;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Networking" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Networking.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
   <data name="n_0x200" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\0x200.n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Setup" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Setup.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="Networking" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Layout\Networking.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="Session" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Session.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+    <value>..\Layout\Session.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Setup" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Layout\Setup.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
 </root>

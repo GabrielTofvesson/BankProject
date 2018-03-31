@@ -42,8 +42,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleForms.cs" />
-    <Compile Include="NetContext.cs" />
+    <Compile Include="ConsoleForms\CancellationPipe.cs" />
+    <Compile Include="ConsoleForms\ConsoleController.cs" />
+    <Compile Include="ConsoleForms\Context.cs" />
+    <Compile Include="ConsoleForms\ContextManager.cs" />
+    <Compile Include="ConsoleForms\Graphics\DialogView.cs" />
+    <Compile Include="ConsoleForms\Graphics\InputView.cs" />
+    <Compile Include="ConsoleForms\LayoutMeta.cs" />
+    <Compile Include="ConsoleForms\Graphics\ListView.cs" />
+    <Compile Include="ConsoleForms\Graphics\TextView.cs" />
+    <Compile Include="ConsoleForms\Graphics\View.cs" />
+    <Compile Include="ConsoleForms\Gravity.cs" />
+    <Compile Include="ConsoleForms\Helpers.cs" />
+    <Compile Include="ConsoleForms\Padding\Padding.cs" />
+    <Compile Include="ConsoleForms\Padding\AbsolutePadding.cs" />
+    <Compile Include="ConsoleForms\Padding\RelativePadding.cs" />
+    <Compile Include="ConsoleForms\Rectangle.cs" />
+    <Compile Include="ConsoleForms\Region.cs" />
+    <Compile Include="ConsoleForms\Timer.cs" />
+    <Compile Include="ConsoleForms\ViewData.cs" />
+    <Compile Include="Context\NetContext.cs" />
     <Compile Include="Networking.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -52,8 +70,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SessionContext.cs" />
-    <Compile Include="WelcomeContext.cs" />
+    <Compile Include="Context\SessionContext.cs" />
+    <Compile Include="Context\WelcomeContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -67,11 +85,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Session.xml" />
-    <Content Include="Setup.xml">
+    <Content Include="Layout\Session.xml" />
+    <Content Include="Layout\Setup.xml">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="Networking.xml">
+    <Content Include="Layout\Networking.xml">
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
