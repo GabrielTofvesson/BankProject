@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Client;
 using Client.ConsoleForms;
 using Client.ConsoleForms.Parameters;
-using Client.Properties;
 using Common;
-using Tofvesson.Collections;
 
 namespace ConsoleForms
 {

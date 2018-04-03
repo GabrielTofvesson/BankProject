@@ -1,5 +1,6 @@
 ﻿using Client.ConsoleForms.Parameters;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Client.ConsoleForms
@@ -36,6 +37,32 @@ namespace Client.ConsoleForms
             foreach (var val in data)
                 len += val?.InnerText.Length ?? 0;
             return len;
+        }
+
+        public static List<T> Collect<T>(this IEnumerable<T> l, Predicate<T> p, List<T> collector = null)
+        {
+            List<T> res = collector ?? new List<T>();
+            foreach (var t in l)
+                if (p(t))
+                    res.Add(t);
+            return res;
+        }
+
+        public static int Matches<T>(this IEnumerable<T> l, Predicate<T> p)
+        {
+            int i = 0;
+            foreach (var t in l)
+                if (p(t))
+                    ++i;
+            return i;
+        }
+
+        public static T FirstOrNull<T>(this IEnumerable<T> l, Predicate<T> p)
+        {
+            foreach (var t in l)
+                if (p(t))
+                    return t;
+            return default(T);
         }
     }
 

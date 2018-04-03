@@ -32,14 +32,13 @@ namespace Client
                 bool success = true;
 
                 foreach (var input in i.Inputs)
-                {
                     if (input.Text.Length == 0)
                     {
                         success = false;
                         input.SelectBackgroundColor = ConsoleColor.Red;
                         input.BackgroundColor = ConsoleColor.DarkRed;
                     }
-                }
+                
 
                 if (success)
                 {
@@ -142,8 +141,21 @@ namespace Client
 
         public override void OnDestroy()
         {
-            // TODO: Save state
+            ((InputView)views.GetNamed("Register")).SelectedField = 0;
+            foreach (var v in ((InputView)views.GetNamed("Register")).Inputs)
+            {
+                v.Text = "";
+                v.SelectIndex = 0;
+                v.RenderStart = 0;
+            }
 
+            ((InputView)views.GetNamed("Login")).SelectedField = 0;
+            foreach (var v in ((InputView)views.GetNamed("Login")).Inputs)
+            {
+                v.Text = "";
+                v.SelectIndex = 0;
+                v.RenderStart = 0;
+            }
 
             // Close views
             foreach (var view in views)

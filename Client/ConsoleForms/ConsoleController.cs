@@ -253,26 +253,26 @@ namespace Client.ConsoleForms
             List<Tuple<string, View>> views = new List<Tuple<string, View>>();
 
             foreach (var child in doc.FirstChild.NextSibling.ChildNodes)
-            {
                 if (!(child is XmlNode) || child is XmlComment) continue;
-                ViewData data = DoElementParse((XmlNode)child);
-                View load;
-                Type type;
-                try { type = Type.GetType(ns + '.' + data.Name, true); }
-                catch { type = Type.GetType(data.Name, true); }
-
-                ConstructorInfo info = type.GetConstructor(new Type[] { typeof(ViewData) });
-
-                string id = data.attributes.ContainsKey("id") ? data.attributes["id"] : "";
-
-                load = (View)info.Invoke(new object[] { data });
-
-                views.Add(new Tuple<string, View>(id, load));
-            }
+                else views.Add(LoadView(ns, DoElementParse((XmlNode)child)));
 
             if (cacheID != null) cache[cacheID] = views;
 
             return views;
+        }
+
+        public static Tuple<string, View> LoadView(string ns, ViewData data)
+        {
+            Type type;
+            try { type = Type.GetType(ns + '.' + data.Name, true); }
+            catch { type = Type.GetType(data.Name, true); }
+            
+            ConstructorInfo info = type.GetConstructor(new Type[] { typeof(ViewData) });
+
+            string id = data.attributes.ContainsKey("id") ? data.attributes["id"] : "";
+            data.attributes["xmlns"] = ns;
+
+            return new Tuple<string, View>(id, (View)info.Invoke(new object[] { data }));
         }
 
         public delegate void Runnable();

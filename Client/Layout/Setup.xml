@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<Elements xmlns="ConsoleForms">
+<Elements xmlns="Client.ConsoleForms.Graphics">
   
   <!-- Welcome screen -->
-  <DialogBox id="WelcomeScreen"
+  <DialogView id="WelcomeScreen"
              padding_left="2"
              padding_right="2"
              padding_top="1"
@@ -13,10 +13,10 @@
       <Option event="Setup:Register" close="true">Register</Option>
     </Options>
     <Text>Welcome to the Tofvesson banking system! To continue, press [ENTER]               To go back, press [ESCAPE]</Text>
-  </DialogBox>
+  </DialogView>
   
   <!-- Register-context views -->
-  <InputTextBox id="Register"
+  <InputView id="Register"
                 padding_left="2"
                 padding_right="2"
                 padding_top="1"
@@ -29,18 +29,18 @@
       <Field hide="true">Repeat password:</Field>
     </Fields>
     <Text>Register Account</Text>
-  </InputTextBox>
+  </InputView>
   
-  <TextBox id="RegWait"
+  <TextView id="RegWait"
            padding_left="2"
            padding_right="2"
            padding_top="1"
            padding_bottom="1"
            border="3">
     <Text>Registering...</Text>
-  </TextBox>
+  </TextView>
 
-  <DialogBox id="DuplicateAccountError"
+  <DialogView id="DuplicateAccountError"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -50,9 +50,9 @@
       <Option>Ok</Option>
     </Options>
     <Text>An account with this username already exists!</Text>
-  </DialogBox>
+  </DialogView>
   
-  <DialogBox id="PasswordMismatchError"
+  <DialogView id="PasswordMismatchError"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -62,9 +62,9 @@
       <Option>Ok</Option>
     </Options>
     <Text>The entered passwords don't match! </Text>
-  </DialogBox>
+  </DialogView>
 
-  <DialogBox id="WeakPasswordWarning"
+  <DialogView id="WeakPasswordWarning"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -75,10 +75,10 @@
       <Option>No</Option>
     </Options>
     <Text>The password you have supplied has been deemed to be weak. Are you sure you want to continue?</Text>
-  </DialogBox>
+  </DialogView>
   
   <!-- Login-context views -->
-  <InputTextBox id="Login"
+  <InputView id="Login"
                 padding_left="2"
                 padding_right="2"
                 padding_top="1"
@@ -90,19 +90,19 @@
       <Field hide="true">Password:</Field>
     </Fields>
     <Text>Log in</Text>
-  </InputTextBox>
+  </InputView>
 
-  <TextBox id="AuthWait"
+  <TextView id="AuthWait"
            padding_left="2"
            padding_right="2"
            padding_top="1"
            padding_bottom="1"
            border="3">
     <Text>Authenticating...</Text>
-  </TextBox>
+  </TextView>
   
   <!-- Generic dialog boxes -->
-  <DialogBox id="EmptyFieldError"
+  <DialogView id="EmptyFieldError"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -112,9 +112,9 @@
       <Option>Ok</Option>
     </Options>
     <Text>One or more required input field is empty</Text>
-  </DialogBox>
+  </DialogView>
 
-  <DialogBox id="AuthError"
+  <DialogView id="AuthError"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -124,5 +124,5 @@
       <Option>Ok</Option>
     </Options>
     <Text>The given username or password was incorrect</Text>
-  </DialogBox>
+  </DialogView>
 </Elements>

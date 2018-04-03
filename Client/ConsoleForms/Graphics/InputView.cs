@@ -159,7 +159,7 @@ namespace Client.ConsoleForms.Graphics
             ContentHeight += computedSize + Inputs.Length * 2;
         }
 
-        protected override void _Draw(int left, int top)
+        protected override void _Draw(int left, ref int top)
         {
             DrawEmptyPadding(left, ref top, padding.Top());
             DrawContent(left, ref top);

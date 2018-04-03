@@ -40,14 +40,10 @@ namespace Client.ConsoleForms.Graphics
 
         //public char Border { get; set; }
         //public ConsoleColor BorderColor { get; set; }
-        public ConsoleColor BackgroundColor { get; set; }
-        public ConsoleColor TextColor { get; set; }
 
         public TextView(ViewData parameters) : base(parameters)
         {
             //BorderColor = (ConsoleColor) parameters.AttribueAsInt("border", (int)ConsoleColor.Blue);
-            BackgroundColor = (ConsoleColor)parameters.AttribueAsInt("color_background", (int)ConsoleColor.White);
-            TextColor = (ConsoleColor)parameters.AttribueAsInt("color_text", (int)ConsoleColor.Black);
 
             Border = ' ';
             this.text = parameters.NestedText("Text").Split(' ');
@@ -151,7 +147,7 @@ namespace Client.ConsoleForms.Graphics
 
         private static bool WillSubSplit(string s, int max) => ((s.Length / max) + (s.Length % max != 0 ? 1 : 0)) > 1 || s.Contains('\n');
 
-        protected override void _Draw(int left, int top)
+        protected override void _Draw(int left, ref int top)
         {
             DrawEmptyPadding(left, ref top, padding.Top());
             DrawContent(left, ref top);

@@ -45,7 +45,7 @@ namespace Client.ConsoleForms.Graphics
             NotSelectColor = (ConsoleColor)parameters.AttribueAsInt("unselect_color", (int)ConsoleColor.White);
         }
 
-        protected override void _Draw(int left, int top)
+        protected override void _Draw(int left, ref int top)
         {
             DrawEmptyPadding(left, ref top, padding.Top());
             base.DrawContent(left, ref top);

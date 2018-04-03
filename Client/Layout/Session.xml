@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<Elements xmlns="ConsoleForms">
-  <DialogBox id="Success"
+<Elements xmlns="Client.ConsoleForms.Graphics">
+  <DialogView id="Success"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -9,5 +9,5 @@
       <Option>Quit</Option>
     </Options>
     <Text>Login succeeded!</Text>
-  </DialogBox>
+  </DialogView>
 </Elements>

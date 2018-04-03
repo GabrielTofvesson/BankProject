@@ -23,6 +23,8 @@ namespace Client.ConsoleForms.Graphics
         public char Border { get; set; }
         public bool DrawBorder { get; set; }
         public ConsoleColor BorderColor { get; set; }
+        public ConsoleColor BackgroundColor { get; set; }
+        public ConsoleColor TextColor { get; set; }
         public int ContentWidth { get; protected set; }
         public int ContentHeight { get; protected set; }
         public abstract Region Occlusion { get; }
@@ -30,10 +32,12 @@ namespace Client.ConsoleForms.Graphics
 
         public View(ViewData parameters)
         {
-            this.padding = new AbsolutePadding(parameters.AttribueAsInt("padding_left"), parameters.AttribueAsInt("padding_right"), parameters.AttribueAsInt("padding_top"), parameters.AttribueAsInt("padding_bottom"));
-            this.gravity = (Gravity)parameters.AttribueAsInt("gravity");
-            this.BorderColor = (ConsoleColor)parameters.AttribueAsInt("border", (int)ConsoleColor.Blue);
-            this.Border = ' ';
+            padding = new AbsolutePadding(parameters.AttribueAsInt("padding_left"), parameters.AttribueAsInt("padding_right"), parameters.AttribueAsInt("padding_top"), parameters.AttribueAsInt("padding_bottom"));
+            gravity = (Gravity)parameters.AttribueAsInt("gravity");
+            BorderColor = (ConsoleColor)parameters.AttribueAsInt("border", (int)ConsoleColor.Blue);
+            BackgroundColor = (ConsoleColor)parameters.AttribueAsInt("color_background", (int)ConsoleColor.White);
+            TextColor = (ConsoleColor)parameters.AttribueAsInt("color_text", (int)ConsoleColor.Black);
+            Border = ' ';
             DrawBorder = parameters.attributes.ContainsKey("border");
 
             back_data = parameters.GetAttribute("back");
@@ -44,12 +48,20 @@ namespace Client.ConsoleForms.Graphics
             hCenter = !Enums.HasFlag(gravity, Gravity.TOP) && !Enums.HasFlag(gravity, Gravity.BOTTOM);
         }
 
+        public void ResetRenderColors() => SetRenderColors(BackgroundColor, TextColor);
+        public void SetRenderColors(ConsoleColor bg, ConsoleColor fg)
+        {
+            Console.BackgroundColor = bg;
+            Console.ForegroundColor = fg;
+        }
+
         public void Draw(Tuple<int, int> t) => Draw(t.Item1, t.Item2);
-        public void Draw(int left, int top)
+        public void Draw(int left, int top) => Draw(left, ref top);
+        public void Draw(int left, ref int top)
         {
             Dirty = false;
             if (DrawBorder) _DrawBorder(left, top);
-            _Draw(left + 1, top);
+            _Draw(left + 1, ref top);
         }
         public virtual void _DrawBorder(int left, int top)
         {
@@ -67,7 +79,7 @@ namespace Client.ConsoleForms.Graphics
             Console.Write(Filler(Border, ContentWidth + 2));
             Console.BackgroundColor = ConsoleColor.Black;
         }
-        protected abstract void _Draw(int left, int top);
+        protected abstract void _Draw(int left, ref int top);
         public virtual bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus)
         {
             if (back_data.Length != 0 && info.ValidEvent && inFocus && info.Event.Key == ConsoleKey.Escape)
@@ -76,6 +88,16 @@ namespace Client.ConsoleForms.Graphics
                 ParseAction(back_data, true)();
             }
             return false;
+        }
+        protected void DrawTopPadding(int left, ref int top) => DrawPadding(left, ref top, padding.Top());
+        protected void DrawBottomPadding(int left, ref int top) => DrawPadding(left, ref top, padding.Bottom());
+        private void DrawPadding(int left, ref int top, int count)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                Console.SetCursorPosition(left, top++);
+                Console.Write(Filler(' ', ContentWidth));
+            }
         }
         protected EventAction ParseAction(ViewData data)
         {

@@ -46,6 +46,9 @@
     <Compile Include="ConsoleForms\ConsoleController.cs" />
     <Compile Include="ConsoleForms\Context.cs" />
     <Compile Include="ConsoleForms\ContextManager.cs" />
+    <Compile Include="ConsoleForms\Events\ISubmissionListener.cs" />
+    <Compile Include="ConsoleForms\Events\ITextInputEventListener.cs" />
+    <Compile Include="ConsoleForms\Graphics\ButtonView.cs" />
     <Compile Include="ConsoleForms\Graphics\DialogView.cs" />
     <Compile Include="ConsoleForms\Graphics\InputView.cs" />
     <Compile Include="ConsoleForms\LayoutMeta.cs" />

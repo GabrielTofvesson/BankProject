@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<Elements xmlns="ConsoleForms">
+<Elements xmlns="Client.ConsoleForms.Graphics">
   <!-- Networking context -->
-  <InputTextBox id="NetConnect"
+  <InputView id="NetConnect"
                 padding_left="2"
                 padding_right="2"
                 padding_top="1"
@@ -11,9 +11,9 @@
       <Field default="80" input_type="integer" max_length="5">Port:</Field>
     </Fields>
     <Text>Server connection configuration</Text>
-  </InputTextBox>
+  </InputView>
 
-  <DialogBox id="SecurityIssue"
+  <DialogView id="SecurityIssue"
              padding_left="2"
              padding_right="2"
              padding_top="1"
@@ -24,9 +24,9 @@
       <Option>Cancel</Option>
     </Options>
     <Text>The identity of the server could not be verified. Continue?</Text>
-  </DialogBox>
+  </DialogView>
   
-  <DialogBox id="Connecting"
+  <DialogView id="Connecting"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -35,10 +35,10 @@
       <Option>Cancel</Option>
     </Options>
     <Text>Connecting to server...</Text>
-  </DialogBox>
+  </DialogView>
 
   <!-- Generic dialog boxes -->
-  <DialogBox id="EmptyFieldError"
+  <DialogView id="EmptyFieldError"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -47,9 +47,9 @@
       <Option>Ok</Option>
     </Options>
     <Text>One or more required input field is empty</Text>
-  </DialogBox>
+  </DialogView>
 
-  <DialogBox id="IPError"
+  <DialogView id="IPError"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -58,9 +58,9 @@
       <Option>Ok</Option>
     </Options>
     <Text>The supplied IP-address is not valid</Text>
-  </DialogBox>
+  </DialogView>
 
-  <DialogBox id="PortError"
+  <DialogView id="PortError"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -69,9 +69,9 @@
       <Option>Ok</Option>
     </Options>
     <Text>The supplied port is not valid</Text>
-  </DialogBox>
+  </DialogView>
 
-  <DialogBox id="ConnectionError"
+  <DialogView id="ConnectionError"
     padding_left="2"
     padding_right="2"
     padding_top="1"
@@ -81,5 +81,5 @@
       <Option>Ok</Option>
     </Options>
     <Text>Could not connect to server</Text>
-  </DialogBox>
+  </DialogView>
 </Elements>
