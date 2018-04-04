@@ -16,10 +16,23 @@ namespace Client.ConsoleForms
         protected readonly ReadOnlyCollection<Tuple<string, View>> views;
         protected readonly ContextManager manager;
 
-        public Context(ContextManager manager, string contextName, bool asResource = true)
+        private delegate List<Tuple<string, View>> ViewLoader(string data, LangManager lang);
+        public Context(ContextManager manager, params string[] contextNames) : this(manager, true, contextNames) { }
+        public Context(ContextManager manager, bool asResource, params string[] contextNames)
         {
             this.manager = manager;
-            views = new ReadOnlyCollectionBuilder<Tuple<string, View>>(asResource ? ConsoleController.LoadResourceViews(contextName) : ConsoleController.LoadViews(contextName)).ToReadOnlyCollection();
+
+            ViewLoader loader;
+            if (asResource) loader = (d, m) => ConsoleController.LoadResourceViews(d, m);
+            else loader = (d, m) => ConsoleController.LoadViews(d, m);
+
+            List<Tuple<string, View>> l = new List<Tuple<string, View>>();
+            foreach(var contextName in contextNames)
+                foreach (var viewPair in loader(contextName, manager.I18n))
+                    if (l.GetNamed(viewPair.Item1) != null) throw new SystemException($"View with id=\"{viewPair.Item1}\" has already been loaded!");
+                    else l.Add(viewPair);
+            
+            views = new ReadOnlyCollectionBuilder<Tuple<string, View>>(l).ToReadOnlyCollection();
         }
 
         public virtual bool Update(ConsoleController.KeyEvent keypress, bool hasKeypress = true)

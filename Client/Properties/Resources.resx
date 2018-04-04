@@ -124,13 +124,28 @@
   <data name="n_0x200" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\0x200.n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Common" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Layout\Common.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="Networking" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Layout\Networking.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+    <value>..\Resources\Layout\Networking.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="Session" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Layout\Session.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+    <value>..\Resources\Layout\Session.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="Setup" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Layout\Setup.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+    <value>..\Resources\Layout\Setup.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="strings_lang_en_US" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Strings\en_US\strings.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="strings_lang_sv_SE" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Strings\sv_SE\strings.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="strings_meta" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Strings\Meta.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="strings_lang_en_GB" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Strings\en_GB\strings.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
 </root>

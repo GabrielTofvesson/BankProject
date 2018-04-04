@@ -51,6 +51,7 @@
     <Compile Include="ConsoleForms\Graphics\ButtonView.cs" />
     <Compile Include="ConsoleForms\Graphics\DialogView.cs" />
     <Compile Include="ConsoleForms\Graphics\InputView.cs" />
+    <Compile Include="ConsoleForms\LangManager.cs" />
     <Compile Include="ConsoleForms\LayoutMeta.cs" />
     <Compile Include="ConsoleForms\Graphics\ListView.cs" />
     <Compile Include="ConsoleForms\Graphics\TextView.cs" />
@@ -88,13 +89,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Layout\Session.xml" />
-    <Content Include="Layout\Setup.xml">
+    <Content Include="Resources\Layout\Common.xml" />
+    <Content Include="Resources\Layout\Session.xml" />
+    <Content Include="Resources\Layout\Setup.xml">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="Layout\Networking.xml">
+    <Content Include="Resources\Layout\Networking.xml">
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="Resources\Strings\en_GB\strings.xml" />
+    <Content Include="Resources\Strings\en_US\strings.xml" />
+    <Content Include="Resources\Strings\Meta.xml" />
+    <Content Include="Resources\Strings\sv_SE\strings.xml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

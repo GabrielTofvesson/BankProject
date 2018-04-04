@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<Strings label="Svenska">
+	<Entry name="NC_head">Serverkonfiguration</Entry>
+	<Entry name="NC_sec">Den valda serverns identitet kunde inte verifieras. Detta innebär att det inte är en officiell server. Fortsätt?</Entry>
+	<Entry name="NC_stall">Kopplar upp mot servern...</Entry>
+
+	<Entry name="ERR_empty">Ett eller fler obligatoriska inputfält är tomma!</Entry>
+</Strings>

@@ -17,7 +17,7 @@ namespace Client
         private Promise promise;
         private bool forceDestroy = true;
 
-        public WelcomeContext(ContextManager manager, BankNetInteractor connection) : base(manager, "Setup")
+        public WelcomeContext(ContextManager manager, BankNetInteractor connection) : base(manager, "Setup", "Common")
         {
             this.interactor = connection;
 

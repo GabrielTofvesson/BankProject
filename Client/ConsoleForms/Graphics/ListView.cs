@@ -15,7 +15,7 @@ namespace Client.ConsoleForms.Graphics
 
         public override Region Occlusion => new Region(new Rectangle(0, 0, ContentWidth, ContentHeight));
 
-        public ListView(ViewData parameters) : base(parameters)
+        public ListView(ViewData parameters, LangManager lang) : base(parameters, lang)
         {
             SelectBackground = (ConsoleColor)parameters.AttribueAsInt("background_select_color", (int)ConsoleColor.Gray);
             SelectText = (ConsoleColor)parameters.AttribueAsInt("text_select_color", (int)ConsoleColor.Gray);
@@ -29,7 +29,7 @@ namespace Client.ConsoleForms.Graphics
                 // Limit content width
                 if (limited && view.AttribueAsInt("width") > maxWidth) view.attributes["width"] = maxWidth.ToString();
 
-                Tuple<string, View> v = ConsoleController.LoadView(parameters.attributes["xmlns"], view); // Load the view in with standard namespace
+                Tuple<string, View> v = ConsoleController.LoadView(parameters.attributes["xmlns"], view, I18n); // Load the view in with standard namespace
                 innerViews.Add(v);
 
                 if (!limited) maxWidth = Math.Max(v.Item2.ContentWidth, maxWidth);

@@ -178,5 +178,16 @@ namespace Tofvesson.Crypto
 
         public override bool Equals(object obj)
             => obj is RSA && ((RSA)obj).CanDecrypt == CanDecrypt && ((RSA)obj).e.Equals(e) && ((RSA)obj).n.Equals(n) && (!CanDecrypt || ((RSA)obj).d.Equals(d));
+
+        public override int GetHashCode()
+        {
+            var hashCode = 2073836280;
+            hashCode = hashCode * -1521134295 + EqualityComparer<BigInteger>.Default.GetHashCode(e);
+            hashCode = hashCode * -1521134295 + EqualityComparer<BigInteger>.Default.GetHashCode(n);
+            hashCode = hashCode * -1521134295 + EqualityComparer<BigInteger>.Default.GetHashCode(d);
+            hashCode = hashCode * -1521134295 + CanEncrypt.GetHashCode();
+            hashCode = hashCode * -1521134295 + CanDecrypt.GetHashCode();
+            return hashCode;
+        }
     }
 }

@@ -15,7 +15,7 @@ namespace Client
         private readonly BankNetInteractor interactor;
         private readonly string sessionID;
 
-        public SessionContext(ContextManager manager, BankNetInteractor interactor, string sessionID) : base(manager, "Session")
+        public SessionContext(ContextManager manager, BankNetInteractor interactor, string sessionID) : base(manager, "Session", "Common")
         {
             this.interactor = interactor;
             this.sessionID = sessionID;

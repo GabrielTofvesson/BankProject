@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<Strings label="English">
+	<Entry name="NC_head">Server configuration</Entry>
+	<Entry name="NC_sec">The selected server's identity could not be verified. This implies that it is not an official server. Continue?</Entry>
+	<Entry name="NC_stall">Connecting to server...</Entry>
+	<Entry name="NC_next">Continue</Entry>
+	<Entry name="NC_cancel">Cancel</Entry>
+	<Entry name="NC_ip">Server IP:</Entry>
+	<Entry name="NC_port">Port:</Entry>
+	<Entry name="NC_iperr">The supplied IP-address is not valid</Entry>
+	<Entry name="NC_porterr">The supplied port is not valid</Entry>
+	<Entry name="NC_connerr">Could not connect to server</Entry>
+
+	<Entry name="SU_welcome">Welcome to the Tofvesson banking system! To continue, press [ENTER]               To go back, press [ESCAPE]</Entry>
+	<Entry name="SU_reg">Register Account</Entry>
+	<Entry name="SU_regstall">Registering...</Entry>
+	<Entry name="SU_dup">An account with this username already exists!</Entry>
+	<Entry name="SU_mismatch">The entered passwords don't match! </Entry>
+	<Entry name="SU_weak">The password you have supplied has been deemed to be weak. Are you sure you want to continue?</Entry>
+	<Entry name="SU_login">Log in</Entry>
+	<Entry name="SU_authstall">Authenticating...</Entry>
+	<Entry name="SU_usrerr">The given username or password was incorrect</Entry>
+	<Entry name="SU_usr">Username:</Entry>
+	<Entry name="SU_pwd">Password:</Entry>
+	<Entry name="SU_pwdrep">Repeat password:</Entry>
+	<Entry name="SU_reg_label">Register</Entry>
+	<Entry name="SU_login_label">Login</Entry>
+
+	<Entry name="SE_bal">Balance: $1</Entry>
+	<Entry name="SE_hist">View transaction history</Entry>
+	<Entry name="SE_tx">Transfer funds</Entry>
+	<Entry name="SE_pwdu">Update password</Entry>
+
+	<Entry name="GENERIC_accept">Ok</Entry>
+	<Entry name="GENERIC_positive">Yes</Entry>
+	<Entry name="GENERIC_negative">No</Entry>
+
+	<Entry name="ERR_empty">One of more required field was empty!</Entry>
+</Strings>

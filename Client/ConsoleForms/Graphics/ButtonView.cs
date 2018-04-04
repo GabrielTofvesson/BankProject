@@ -12,7 +12,7 @@ namespace Client.ConsoleForms.Graphics
     {
         protected SubmissionEvent evt;
 
-        public ButtonView(ViewData parameters) : base(parameters)
+        public ButtonView(ViewData parameters, LangManager lang) : base(parameters, lang)
         {
         }
 

@@ -18,6 +18,7 @@ namespace ConsoleForms
             // Set up timestamps in debug output
             DebugStream = new TimeStampWriter(DebugStream, "HH:mm:ss.fff");
 
+
             Padding p = new AbsolutePadding(2, 2, 1, 1);
 
             Console.CursorVisible = false;

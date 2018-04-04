@@ -9,6 +9,13 @@ namespace Client.ConsoleForms
     public sealed class ContextManager
     {
         public Context Current { get; private set; }
+        public LangManager I18n { get; private set; }
+
+        public ContextManager(bool doLang = true)
+        {
+            if (doLang) I18n = LangManager.LoadLang();
+            else I18n = LangManager.NO_LANG;
+        }
 
         public void LoadContext(Context ctx)
         {

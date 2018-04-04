@@ -120,7 +120,7 @@ namespace Client.ConsoleForms.Graphics
         public SubmissionListener SubmissionsListener { protected get; set; }
         public TextEnteredListener InputListener { protected get; set; }
 
-        public InputView(ViewData parameters) : base(parameters)
+        public InputView(ViewData parameters, LangManager lang) : base(parameters, lang)
         {
             int
                 sBC = parameters.AttribueAsInt("textfield_select_color", (int)ConsoleColor.Gray),

@@ -403,6 +403,16 @@ namespace Server
 
                 return true;
             }
+
+            public override int GetHashCode()
+            {
+                var hashCode = 495068346;
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Text);
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+                hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, string>>.Default.GetHashCode(Attributes);
+                hashCode = hashCode * -1521134295 + EqualityComparer<List<Entry>>.Default.GetHashCode(NestedEntries);
+                return hashCode;
+            }
         }
 
         public class User

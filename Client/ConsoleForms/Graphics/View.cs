@@ -29,8 +29,9 @@ namespace Client.ConsoleForms.Graphics
         public int ContentHeight { get; protected set; }
         public abstract Region Occlusion { get; }
         public bool Dirty { get; set; }
+        public LangManager I18n { get; private set; }
 
-        public View(ViewData parameters)
+        public View(ViewData parameters, LangManager lang)
         {
             padding = new AbsolutePadding(parameters.AttribueAsInt("padding_left"), parameters.AttribueAsInt("padding_right"), parameters.AttribueAsInt("padding_top"), parameters.AttribueAsInt("padding_bottom"));
             gravity = (Gravity)parameters.AttribueAsInt("gravity");
@@ -39,6 +40,7 @@ namespace Client.ConsoleForms.Graphics
             TextColor = (ConsoleColor)parameters.AttribueAsInt("color_text", (int)ConsoleColor.Black);
             Border = ' ';
             DrawBorder = parameters.attributes.ContainsKey("border");
+            I18n = lang;
 
             back_data = parameters.GetAttribute("back");
 
@@ -108,7 +110,7 @@ namespace Client.ConsoleForms.Graphics
         {
             string[] components;
             if (action == null || !action.Contains(':') || (components = action.Split(':')).Length != 2) return () => { };
-            var views = ConsoleController.LoadResourceViews(components[0]);
+            var views = ConsoleController.LoadResourceViews(components[0], I18n);
             var view = views.GetNamed(components[1]);
             return () =>
             {

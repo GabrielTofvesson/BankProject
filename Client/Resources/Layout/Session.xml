@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Elements xmlns="Client.ConsoleForms.Graphics">
+  <DialogView id="Success"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Options>
+      <Option>Quit</Option>
+    </Options>
+    <Text>Login succeeded!</Text>
+  </DialogView>
+  
+  <TextView id="balance"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Text>@string/SE_bal</Text>
+  </TextView>
+  
+  <ListView id="menu_options"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Views>
+      <Button id="history">
+        <Text>@string/SE_hist</Text>
+      </Button>
+
+      <Button id="create">
+        <Text>@string/tx</Text>
+      </Button>
+
+      <Button id="update">
+        <Text>@string/pwdu</Text>
+      </Button>
+    </Views>
+  </ListView>
+</Elements>

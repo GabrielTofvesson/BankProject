@@ -12,7 +12,7 @@ namespace Client
 {
     public class NetContext : Context
     {
-        public NetContext(ContextManager manager) : base(manager, "Networking")
+        public NetContext(ContextManager manager) : base(manager, "Networking", "Common")
         {
             // Just close when anything is selected and "submitted"
             RegisterSelectListeners((s, i, v) => controller.CloseView(s), "EmptyFieldError", "IPError", "PortError", "ConnectionError");

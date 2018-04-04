@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<Lang>
+	<Default>sv_SE</Default>
+	<Fallback priority="0">en_US</Fallback>
+	<Fallback priority="1">en_GB</Fallback>
+</Lang>

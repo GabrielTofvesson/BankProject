@@ -41,7 +41,7 @@ namespace Client.ConsoleForms.Graphics
         //public char Border { get; set; }
         //public ConsoleColor BorderColor { get; set; }
 
-        public TextView(ViewData parameters) : base(parameters)
+        public TextView(ViewData parameters, LangManager lang) : base(parameters, lang)
         {
             //BorderColor = (ConsoleColor) parameters.AttribueAsInt("border", (int)ConsoleColor.Blue);
 

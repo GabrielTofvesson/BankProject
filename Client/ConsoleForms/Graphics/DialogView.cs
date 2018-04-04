@@ -29,12 +29,12 @@ namespace Client.ConsoleForms.Graphics
 
         private static int ComputeLength(Tuple<string, string>[] opts) => opts.CollectiveLength(true) + opts.Length - 1;
 
-        public DialogView(ViewData parameters) :
+        public DialogView(ViewData parameters, LangManager lang) :
             base(parameters.SetAttribute("width",
                 Math.Max(
                     parameters.AttribueAsInt("width") < 1 ? parameters.NestedText("Text").Length : parameters.AttribueAsInt("width"),
                     ComputeLength(parameters.Get("Options").CollectSub("Option"))
-                )))
+                )), lang)
         {
             ViewData optionsData = parameters.Get("Options");
             this.options = optionsData.nestedData.Filter(p => p.Name.Equals("Option")).ToArray();

@@ -211,9 +211,9 @@ namespace Client.ConsoleForms
             }
         }
 
-        private static ViewData DoElementParse(XmlNode el)
+        private static ViewData DoElementParse(XmlNode el, LangManager lang)
         {
-            ViewData data = new ViewData(el.LocalName, el.InnerText);
+            ViewData data = new ViewData(el.LocalName, lang.MapIfExists(el.InnerText));
 
             if (el.Attributes != null)
                 foreach (var attr in el.Attributes)
@@ -222,14 +222,14 @@ namespace Client.ConsoleForms
 
             if (el.ChildNodes != null)
                 foreach (var child in el.ChildNodes)
-                    if (child is XmlNode) data.nestedData.Add(DoElementParse((XmlNode)child));
+                    if (child is XmlNode) data.nestedData.Add(DoElementParse((XmlNode)child, lang));
 
             return data;
         }
 
         private static Dictionary<string, List<Tuple<string, View>>> cache = new Dictionary<string, List<Tuple<string, View>>>();
 
-        public static List<Tuple<string, View>> LoadResourceViews(string name, bool doCache = true)
+        public static List<Tuple<string, View>> LoadResourceViews(string name, LangManager lang, bool doCache = true)
         {
             if (cache.ContainsKey(name))
                 return cache[name];
@@ -237,10 +237,10 @@ namespace Client.ConsoleForms
             PropertyInfo[] properties = typeof(Resources).GetProperties(BindingFlags.NonPublic | BindingFlags.Static);
             foreach (var prop in properties)
                 if (prop.Name.Equals(name) && prop.PropertyType.Equals(typeof(string)))
-                    return LoadViews((string)prop.GetValue(null), doCache ? name : null);
+                    return LoadViews((string)prop.GetValue(null), lang, doCache ? name : null);
             throw new SystemException($"Resource { name } could not be located!");
         }
-        public static List<Tuple<string, View>> LoadViews(string xml, string cacheID = null)
+        public static List<Tuple<string, View>> LoadViews(string xml, LangManager lang, string cacheID = null)
         {
             if (cacheID != null && cache.ContainsKey(cacheID))
                 return cache[cacheID];
@@ -254,25 +254,25 @@ namespace Client.ConsoleForms
 
             foreach (var child in doc.FirstChild.NextSibling.ChildNodes)
                 if (!(child is XmlNode) || child is XmlComment) continue;
-                else views.Add(LoadView(ns, DoElementParse((XmlNode)child)));
+                else views.Add(LoadView(ns, DoElementParse((XmlNode)child, lang), lang));
 
             if (cacheID != null) cache[cacheID] = views;
 
             return views;
         }
 
-        public static Tuple<string, View> LoadView(string ns, ViewData data)
+        public static Tuple<string, View> LoadView(string ns, ViewData data, LangManager lang)
         {
             Type type;
             try { type = Type.GetType(ns + '.' + data.Name, true); }
             catch { type = Type.GetType(data.Name, true); }
             
-            ConstructorInfo info = type.GetConstructor(new Type[] { typeof(ViewData) });
+            ConstructorInfo info = type.GetConstructor(new Type[] { typeof(ViewData), typeof(LangManager) });
 
             string id = data.attributes.ContainsKey("id") ? data.attributes["id"] : "";
             data.attributes["xmlns"] = ns;
 
-            return new Tuple<string, View>(id, (View)info.Invoke(new object[] { data }));
+            return new Tuple<string, View>(id, (View)info.Invoke(new object[] { data, lang }));
         }
 
         public delegate void Runnable();
@@ -284,7 +284,8 @@ namespace Client.ConsoleForms
                 .SetAttribute("padding_right", 2)
                 .SetAttribute("padding_top", 1)
                 .SetAttribute("padding_bottom", 1)
-                .AddNested(new ViewData("Text", message)) // Add message
+                .AddNested(new ViewData("Text", message)), // Add message
+                LangManager.NO_LANG
                 )
             {
                 BackgroundColor = ConsoleColor.White,

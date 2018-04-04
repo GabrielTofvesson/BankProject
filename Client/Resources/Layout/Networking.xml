@@ -7,10 +7,10 @@
                 padding_top="1"
                 padding_bottom="1">
     <Fields>
-      <Field input_type="decimal" max_length="15">Server IP:</Field>
-      <Field default="80" input_type="integer" max_length="5">Port:</Field>
+      <Field input_type="decimal" max_length="15">@string/NC_ip</Field>
+      <Field default="80" input_type="integer" max_length="5">@string/NC_port</Field>
     </Fields>
-    <Text>Server connection configuration</Text>
+    <Text>@string/NC_head</Text>
   </InputView>
 
   <DialogView id="SecurityIssue"
@@ -20,10 +20,10 @@
              padding_bottom="1"
              select="1">
     <Options>
-      <Option>Continue</Option>
-      <Option>Cancel</Option>
+      <Option>@string/NC_next</Option>
+      <Option>@string/NC_cancel</Option>
     </Options>
-    <Text>The identity of the server could not be verified. Continue?</Text>
+    <Text>@string/NC_sec</Text>
   </DialogView>
   
   <DialogView id="Connecting"
@@ -32,21 +32,9 @@
     padding_top="1"
     padding_bottom="1">
     <Options>
-      <Option>Cancel</Option>
+      <Option>@string/NC_cancel</Option>
     </Options>
-    <Text>Connecting to server...</Text>
-  </DialogView>
-
-  <!-- Generic dialog boxes -->
-  <DialogView id="EmptyFieldError"
-    padding_left="2"
-    padding_right="2"
-    padding_top="1"
-    padding_bottom="1">
-    <Options>
-      <Option>Ok</Option>
-    </Options>
-    <Text>One or more required input field is empty</Text>
+    <Text>@string/NC_stall</Text>
   </DialogView>
 
   <DialogView id="IPError"
@@ -55,9 +43,9 @@
     padding_top="1"
     padding_bottom="1">
     <Options>
-      <Option>Ok</Option>
+      <Option>@string/GENERIC_accept</Option>
     </Options>
-    <Text>The supplied IP-address is not valid</Text>
+    <Text>@string/NC_iperr</Text>
   </DialogView>
 
   <DialogView id="PortError"
@@ -66,9 +54,9 @@
     padding_top="1"
     padding_bottom="1">
     <Options>
-      <Option>Ok</Option>
+      <Option>@string/GENERIC_accept</Option>
     </Options>
-    <Text>The supplied port is not valid</Text>
+    <Text>@string/NC_porterr</Text>
   </DialogView>
 
   <DialogView id="ConnectionError"
@@ -78,8 +66,8 @@
     padding_bottom="1"
              border="4">
     <Options>
-      <Option>Ok</Option>
+      <Option>@string/GENERIC_accept</Option>
     </Options>
-    <Text>Could not connect to server</Text>
+    <Text>@string/NC_connerr</Text>
   </DialogView>
 </Elements>

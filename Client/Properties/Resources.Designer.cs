@@ -61,6 +61,27 @@ namespace Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
+        ///&lt;Resources&gt;
+        ///  &lt;DialogView id=&quot;EmptyFieldError&quot;
+        ///    padding_left=&quot;2&quot;
+        ///    padding_right=&quot;2&quot;
+        ///    padding_top=&quot;1&quot;
+        ///    padding_bottom=&quot;1&quot;&gt;
+        ///    &lt;Options&gt;
+        ///      &lt;Option&gt;Ok&lt;/Option&gt;
+        ///    &lt;/Options&gt;
+        ///    &lt;Text&gt;@string/ERR_empty&lt;/Text&gt;
+        ///  &lt;/DialogView&gt;
+        ///&lt;/Resources&gt;.
+        /// </summary>
+        internal static string Common {
+            get {
+                return ResourceManager.GetString("Common", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] e_0x200 {
@@ -82,9 +103,9 @@ namespace Client.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
-        ///&lt;Elements xmlns=&quot;ConsoleForms&quot;&gt;
+        ///&lt;Elements xmlns=&quot;Client.ConsoleForms.Graphics&quot;&gt;
         ///  &lt;!-- Networking context --&gt;
-        ///  &lt;InputTextBox id=&quot;NetConnect&quot;
+        ///  &lt;InputView id=&quot;NetConnect&quot;
         ///                padding_left=&quot;2&quot;
         ///                padding_right=&quot;2&quot;
         ///                padding_top=&quot;1&quot;
@@ -93,8 +114,8 @@ namespace Client.Properties {
         ///      &lt;Field input_type=&quot;decimal&quot; max_length=&quot;15&quot;&gt;Server IP:&lt;/Field&gt;
         ///      &lt;Field default=&quot;80&quot; input_type=&quot;integer&quot; max_length=&quot;5&quot;&gt;Port:&lt;/Field&gt;
         ///    &lt;/Fields&gt;
-        ///    &lt;Text&gt;Server connection configuration&lt;/Text&gt;
-        ///  &lt;/Input [rest of string was truncated]&quot;;.
+        ///    &lt;Text&gt;@string/NC_head&lt;/Text&gt;
+        ///  &lt;/InputVie [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Networking {
             get {
@@ -104,8 +125,8 @@ namespace Client.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
-        ///&lt;Elements xmlns=&quot;ConsoleForms&quot;&gt;
-        ///  &lt;DialogBox id=&quot;Success&quot;
+        ///&lt;Elements xmlns=&quot;Client.ConsoleForms.Graphics&quot;&gt;
+        ///  &lt;DialogView id=&quot;Success&quot;
         ///    padding_left=&quot;2&quot;
         ///    padding_right=&quot;2&quot;
         ///    padding_top=&quot;1&quot;
@@ -114,8 +135,17 @@ namespace Client.Properties {
         ///      &lt;Option&gt;Quit&lt;/Option&gt;
         ///    &lt;/Options&gt;
         ///    &lt;Text&gt;Login succeeded!&lt;/Text&gt;
-        ///  &lt;/DialogBox&gt;
-        ///&lt;/Elements&gt;.
+        ///  &lt;/DialogView&gt;
+        ///  
+        ///  &lt;TextView id=&quot;balance&quot;
+        ///    padding_left=&quot;2&quot;
+        ///    padding_right=&quot;2&quot;
+        ///    padding_top=&quot;1&quot;
+        ///    padding_bottom=&quot;1&quot;&gt;
+        ///    &lt;Text&gt;Balance: $balance&lt;/Text&gt;
+        ///  &lt;/TextView&gt;
+        ///  
+        ///  &lt;ListView id= [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Session {
             get {
@@ -125,10 +155,10 @@ namespace Client.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
-        ///&lt;Elements xmlns=&quot;ConsoleForms&quot;&gt;
+        ///&lt;Elements xmlns=&quot;Client.ConsoleForms.Graphics&quot;&gt;
         ///  
         ///  &lt;!-- Welcome screen --&gt;
-        ///  &lt;DialogBox id=&quot;WelcomeScreen&quot;
+        ///  &lt;DialogView id=&quot;WelcomeScreen&quot;
         ///             padding_left=&quot;2&quot;
         ///             padding_right=&quot;2&quot;
         ///             padding_top=&quot;1&quot;
@@ -138,11 +168,73 @@ namespace Client.Properties {
         ///      &lt;Option event=&quot;Setup:Login&quot; close=&quot;true&quot;&gt;Login&lt;/Option&gt;
         ///      &lt;Option event=&quot;Setup:Register&quot; close=&quot;true&quot;&gt;Register&lt;/Option&gt;
         ///    &lt;/Options&gt;
-        ///    &lt;Text&gt;Welcome to the Tofvesson banking system! To conti [rest of string was truncated]&quot;;.
+        ///    &lt;Text&gt;Welcome to the Tofvesson banking [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Setup {
             get {
                 return ResourceManager.GetString("Setup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
+        ///&lt;Strings label=&quot;English&quot;&gt;
+        ///	&lt;Entry name=&quot;NC_head&quot;&gt;Server configuration&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_sec&quot;&gt;The selected server&apos;s identity could not be verified. This implies that it is not an official server. Continue?&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Connecting to server...&lt;/Entry&gt;
+        ///
+        ///	&lt;Entry name=&quot;ERR_empty&quot;&gt;One of more required field was empty!&lt;/Entry&gt;
+        ///&lt;/Strings&gt;.
+        /// </summary>
+        internal static string strings_lang_en_GB {
+            get {
+                return ResourceManager.GetString("strings_lang_en_GB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
+        ///&lt;Strings label=&quot;English&quot;&gt;
+        ///	&lt;Entry name=&quot;NC_head&quot;&gt;Server configuration&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_sec&quot;&gt;The selected server&apos;s identity could not be verified. This implies that it is not an official server. Continue?&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Connecting to server...&lt;/Entry&gt;
+        ///
+        ///	&lt;Entry name=&quot;ERR_empty&quot;&gt;One of more required field was empty!&lt;/Entry&gt;
+        ///&lt;/Strings&gt;.
+        /// </summary>
+        internal static string strings_lang_en_US {
+            get {
+                return ResourceManager.GetString("strings_lang_en_US", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
+        ///&lt;Strings label=&quot;Svenska&quot;&gt;
+        ///	&lt;Entry name=&quot;NC_head&quot;&gt;Serverkonfiguration&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_sec&quot;&gt;Den valda serverns identitet kunde inte verifieras. Detta innebär att det inte är en officiell server. Fortsätt?&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Kopplar upp mot servern...&lt;/Entry&gt;
+        ///
+        ///	&lt;Entry name=&quot;ERR_empty&quot;&gt;Ett eller fler obligatoriska inputfält är tomma!&lt;/Entry&gt;
+        ///&lt;/Strings&gt;.
+        /// </summary>
+        internal static string strings_lang_sv_SE {
+            get {
+                return ResourceManager.GetString("strings_lang_sv_SE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
+        ///&lt;Lang&gt;
+        ///	&lt;Default&gt;sv_SE&lt;/Default&gt;
+        ///	&lt;Fallback priority=&quot;0&quot;&gt;en_US&lt;/Fallback&gt;
+        ///	&lt;Fallback priority=&quot;1&quot;&gt;en_GB&gt;&lt;/Fallback&gt;
+        ///&lt;/Lang&gt;.
+        /// </summary>
+        internal static string strings_meta {
+            get {
+                return ResourceManager.GetString("strings_meta", resourceCulture);
             }
         }
     }
