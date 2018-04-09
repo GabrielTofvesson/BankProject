@@ -18,15 +18,6 @@ namespace Tofvesson.Crypto
     public static class Support
     {
         //   --    Math    --
-        public static BigInteger Invert(BigInteger b)
-        {
-            byte[] arr = b.ToByteArray();
-            for (int i = 0; i < arr.Length; ++i) arr[i] ^= 255;
-            BigInteger integer = new BigInteger(arr);
-            integer += 1;
-            return integer;
-        }
-
         public static BigInteger ModExp(BigInteger b, BigInteger e, BigInteger m)
         {
             int count = e.ToByteArray().Length * 8;
@@ -41,6 +32,36 @@ namespace Tofvesson.Crypto
             }
             return result;
         }
+
+        public static BigInteger GenerateRandom(this RandomProvider provider, BigInteger bound)
+        {
+            byte[] b = bound.ToByteArray();
+            if (b.Length == 0) return 0;
+            byte b1 = b[b.Length - 1];
+
+            provider.GetBytes(b);
+            b[b.Length - 1] %= b1;
+            return new BigInteger(b);
+        }
+
+        public static long HighestBit(this BigInteger b)
+        {
+            byte[] b1 = b.ToByteArray();
+            for (int i = b1.Length - 1; i >= 0; --i)
+                if (b1[i] != 0)
+                    for (int j = 7; j >= 0; --j)
+                        if ((b1[i] & (1 << j)) != 0)
+                            return i * 8 + j;
+            return -1;
+        }
+
+        public static bool BitAt(this BigInteger b, long idx)
+        {
+            byte[] b1 = b.ToByteArray();
+            return (b1[(int)(idx / 8)] & (1 << ((int)(idx % 8)))) != 0;
+        }
+
+        public static BigInteger Abs(this BigInteger b) => b < 0 ? -b : b;
 
         /// <summary>
         /// Uses the fermat test a given amount of times to test whether or not a supplied interger is probably prime.
@@ -278,6 +299,17 @@ namespace Tofvesson.Crypto
                 alloc += bytes[i].Length;
             }
             return result;
+        }
+
+        public static string ToHexString(this byte[] value, bool bigEndian = true)
+        {
+            StringBuilder builder = new StringBuilder();
+            for (int i = bigEndian ? value.Length - 1 : 0; (bigEndian && i >= 0) || (!bigEndian && i < value.Length); i += bigEndian ? -1 : 1)
+            {
+                builder.Append((char)((((value[i] >> 4) < 10) ? 48 : 87) + (value[i] >> 4)));
+                builder.Append((char)((((value[i] & 15) < 10) ? 48 : 87) + (value[i] & 15)));
+            }
+            return builder.ToString();
         }
 
         public static void ArrayCopy<T>(IEnumerable<T> source, int sourceOffset, T[] destination, int offset, int length)

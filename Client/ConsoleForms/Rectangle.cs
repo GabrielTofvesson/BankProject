@@ -8,10 +8,10 @@ namespace Client.ConsoleForms
 {
     public class Rectangle
     {
-        public int Top { get; private set; }
-        public int Bottom { get; private set; }
-        public int Left { get; private set; }
-        public int Right { get; private set; }
+        public int Top { get; internal set; }
+        public int Bottom { get; internal set; }
+        public int Left { get; internal set; }
+        public int Right { get; internal set; }
         public Rectangle(int left, int top, int right, int bottom)
         {
             Left = left;
@@ -20,15 +20,15 @@ namespace Client.ConsoleForms
             Bottom = bottom;
         }
 
-        public bool Intersects(Rectangle rect) => ((Left < rect.Right && Right >= rect.Left) || (Left <= rect.Right && Right > rect.Left)) && ((Top > rect.Bottom && Bottom <= rect.Top) || (Top >= rect.Bottom && Bottom < rect.Top));
+        public bool Intersects(Rectangle rect) => ((Left < rect.Right && Right >= rect.Left) || (Left <= rect.Right && Right > rect.Left)) && ((Top < rect.Bottom && Bottom >= rect.Top) || (Top <= rect.Bottom && Bottom > rect.Top));
         public bool Occludes(Rectangle rect) => Top >= rect.Top && Right >= rect.Right && Left >= rect.Left && Bottom >= rect.Bottom;
         public Rectangle GetIntersecting(Rectangle rect)
             => Intersects(rect) ?
             new Rectangle(
-                Left < rect.Right ? Left : rect.Left,
-                Bottom < rect.Top ? rect.Top : Top,
-                Left < rect.Right ? rect.Right : Right,
-                Bottom < rect.Top ? Bottom : rect.Bottom
+                Math.Max(Left, rect.Left),
+                Math.Max(rect.Top, Top),
+                Math.Min(rect.Right, Right),
+                Math.Min(Bottom, rect.Bottom)
                 ) :
             null;
 
@@ -42,11 +42,11 @@ namespace Client.ConsoleForms
             if (intersect.Left > Left)
                 components[rectangles++] = new Rectangle(Left, Math.Max(intersect.Top, Top), intersect.Left, Math.Min(intersect.Bottom, Bottom));
             if (intersect.Right < Right)
-                components[rectangles++] = new Rectangle(intersect.Right, Math.Max(intersect.Top, Top), Left, Math.Min(intersect.Bottom, Bottom));
+                components[rectangles++] = new Rectangle(intersect.Right, Math.Max(intersect.Top, Top), Right, Math.Min(intersect.Bottom, Bottom));
             if (intersect.Top > Top)
-                components[rectangles++] = new Rectangle(Math.Min(Left, intersect.Left), Top, Math.Max(Right, intersect.Right), intersect.Top);
+                components[rectangles++] = new Rectangle(Left, Top, Right, intersect.Top);
             if (intersect.Bottom < Bottom)
-                components[rectangles] = new Rectangle(Math.Min(Left, intersect.Left), intersect.Bottom, Math.Max(Right, intersect.Right), Bottom);
+                components[rectangles] = new Rectangle(Left, intersect.Bottom, Right, Bottom);
 
             return components;
         }

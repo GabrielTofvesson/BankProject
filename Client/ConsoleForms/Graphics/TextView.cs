@@ -36,7 +36,7 @@ namespace Client.ConsoleForms.Graphics
                 Dirty = true;
             }
         }
-        public override Region Occlusion => new Region(new Rectangle(0, -1, ContentWidth + 2, ContentHeight));
+        public override Region Occlusion => new Region(new Rectangle(0, DrawBorder ? -1 : 0, ContentWidth + (DrawBorder ? 2 : 0), ContentHeight));
 
         //public char Border { get; set; }
         //public ConsoleColor BorderColor { get; set; }

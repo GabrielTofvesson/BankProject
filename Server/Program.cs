@@ -1,4 +1,5 @@
 ﻿using Common;
+using Common.Cryptography.KeyExchange;
 using Server.Properties;
 using System;
 using System.Collections.Generic;
@@ -24,19 +25,19 @@ namespace Server
 
 
             CryptoRandomProvider random = new CryptoRandomProvider();
-            RSA rsa = null;// new RSA(Resources.e_0x200, Resources.n_0x200, Resources.d_0x200);
-            if (rsa == null)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine("No RSA keys available! Server identity will not be verifiable!");
-                Console.ForegroundColor = ConsoleColor.Gray;
-                Console.WriteLine("Generating session-specific RSA-keys...");
-                rsa = new RSA(64, 8, 8, 5);
-                Console.WriteLine("Done!");
-            }
+            //RSA rsa = null;// new RSA(Resources.e_0x200, Resources.n_0x200, Resources.d_0x200);
+            //if (rsa == null)
+            //{
+            //    Console.ForegroundColor = ConsoleColor.Red;
+            //    Console.Error.WriteLine("No RSA keys available! Server identity will not be verifiable!");
+            //    Console.ForegroundColor = ConsoleColor.Gray;
+            //    Console.WriteLine("Generating session-specific RSA-keys...");
+            //    rsa = new RSA(64, 8, 8, 5);
+            //    Console.WriteLine("Done!");
+            //}
 
             NetServer server = new NetServer(
-                rsa,
+                EllipticDiffieHellman.Curve25519(EllipticDiffieHellman.Curve25519_GeneratePrivate(random)),
                 80,
                 (string r, Dictionary<string, string> associations, ref bool s) =>
                 {

@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Common;
+using Common.Cryptography.KeyExchange;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Tofvesson.Crypto;
@@ -25,9 +28,9 @@ namespace Client
             if(checkIdentity)
                 new Task(() =>
                 {
-                    AuthenticatedKeys = NetClient.CheckServerIdentity(address, port, provider);
+                    //AuthenticatedKeys = NetClient.CheckServerIdentity(address, port, provider);
                     authenticating = false;
-                    authenticated = AuthenticatedKeys != null;
+                    authenticated = true;// AuthenticatedKeys != null;
                 }).Start();
             else
             {
@@ -36,10 +39,7 @@ namespace Client
             }
             var addr = System.Net.IPAddress.Parse(address);
             client = new NetClient(
-                new Rijndael128(
-                    Convert.ToBase64String(provider.GetBytes(64)), // 64-byte key  (converted to base64)
-                    Convert.ToBase64String(provider.GetBytes(64))  // 64-byte salt (converted to base64)
-                    ),
+                EllipticDiffieHellman.Curve25519(EllipticDiffieHellman.Curve25519_GeneratePrivate(provider)),
                 addr,
                 port,
                 MessageRecievedHandler,

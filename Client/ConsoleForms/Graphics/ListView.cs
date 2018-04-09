@@ -57,10 +57,15 @@ namespace Client.ConsoleForms.Graphics
                 if(view == innerViews[SelectedView])
                 {
                     view.Item2.BackgroundColor = SelectBackground;
-                    view.Item2.TextColor = SelectText;
+                    //view.Item2.TextColor = SelectText;
                 }
+                Region sub = new Region(new Rectangle(0, 0, ContentWidth, view.Item2.ContentHeight)).Subtract(view.Item2.Occlusion);
 
-                DrawView(left, ref top, view.Item2);
+                sub.Offset(left, top);
+
+                ConsoleController.ClearRegion(sub, view.Item2.BackgroundColor);
+
+                DrawView(left - 1, ref top, view.Item2);
 
                 if (view == innerViews[SelectedView])
                 {

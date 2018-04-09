@@ -54,7 +54,11 @@ namespace Client.ConsoleForms
                 Draw();
             });
 
-            RegisterListener((w1, h1, w2, h2) => Console.Clear());
+            RegisterListener((w1, h1, w2, h2) =>
+            {
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.Clear();
+            });
         }
 
         public void AddView(View v, bool redraw = true) => AddView(v, LayoutMeta.Centering(v), redraw);
@@ -194,12 +198,12 @@ namespace Client.ConsoleForms
             }
         }
 
-        private static void ClearRegion(Region r, ConsoleColor clearColor = ConsoleColor.Black)
+        public static void ClearRegion(Region r, ConsoleColor clearColor = ConsoleColor.Black)
         {
             foreach (var rect in r.SubRegions) ClearRegion(rect, clearColor);
         }
 
-        private static void ClearRegion(Rectangle rect, ConsoleColor clearColor = ConsoleColor.Black)
+        public static void ClearRegion(Rectangle rect, ConsoleColor clearColor = ConsoleColor.Black)
         {
             Console.BackgroundColor = clearColor;
             Console.ForegroundColor = ConsoleColor.White;

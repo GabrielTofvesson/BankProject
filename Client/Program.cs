@@ -18,6 +18,14 @@ namespace ConsoleForms
             // Set up timestamps in debug output
             DebugStream = new TimeStampWriter(DebugStream, "HH:mm:ss.fff");
 
+            byte[] serialized;
+
+            using (BinaryCollector collector = new BinaryCollector(1))
+            {
+                collector.Push(5f);
+                serialized = collector.ToArray();
+            }
+
 
             Padding p = new AbsolutePadding(2, 2, 1, 1);
 
@@ -52,6 +60,7 @@ namespace ConsoleForms
             } while (!info.ValidEvent ||  info.Event.Key != ConsoleKey.Escape);
         }
 
+        // Detects if a key has been hit without blocking
         [DllImport("msvcrt")]
         public static extern int _kbhit();
     }
