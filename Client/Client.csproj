@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BinaryCollector.cs" />
+    <Compile Include="BinaryDistributor.cs" />
     <Compile Include="ConsoleForms\CancellationPipe.cs" />
     <Compile Include="ConsoleForms\ConsoleController.cs" />
     <Compile Include="ConsoleForms\Context.cs" />

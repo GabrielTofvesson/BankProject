@@ -18,14 +18,20 @@ namespace ConsoleForms
             // Set up timestamps in debug output
             DebugStream = new TimeStampWriter(DebugStream, "HH:mm:ss.fff");
 
+
+
             byte[] serialized;
 
-            using (BinaryCollector collector = new BinaryCollector(1))
+            using (BinaryCollector collector = new BinaryCollector(2))
             {
-                collector.Push(5f);
+                collector.Push(true);
+                collector.Push(new double[] { 6.0, 5.0 });
                 serialized = collector.ToArray();
             }
 
+            BinaryDistributor bd = new BinaryDistributor(serialized);
+            bool bit = bd.ReadBit();
+            double[] result = bd.ReadDoubleArray();
 
             Padding p = new AbsolutePadding(2, 2, 1, 1);
 

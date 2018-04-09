@@ -14,6 +14,9 @@ namespace Client
         // Collects reusable 
         private static readonly List<WeakReference<object[]>> expired = new List<WeakReference<object[]>>();
 
+        private static readonly byte[] holder = new byte[8];
+        private static readonly float[] holder_f = new float[1];
+        private static readonly double[] holder_d = new double[1];
         private static readonly List<Type> supportedTypes = new List<Type>()
         {
             typeof(bool),
@@ -93,10 +96,11 @@ namespace Client
         private static void Serialize<T>(T t, byte[] writeTo, ref long bitOffset)
         {
             Type type = t.GetType();
+            bool size = false;
             if (type.IsArray)
             {
                 var array = t as Array;
-                Serialize(array.Length, writeTo, ref bitOffset);
+                Serialize((short)array.Length, writeTo, ref bitOffset);
                 foreach (var element in array)
                     Serialize(element, writeTo, ref bitOffset);
             }
@@ -111,9 +115,25 @@ namespace Client
                     WriteDynamic(writeTo, dec_hi.GetValue(t), 4, bitOffset + 64);
                     WriteDynamic(writeTo, dec_flags.GetValue(t), 4, bitOffset + 96);
                 }
-                else if(type == typeof(float))
+                else if((size = type == typeof(float)) || type == typeof(double))
                 {
-
+                    int bytes = size ? 4 : 8;
+                    Array type_holder = size ? holder_f as Array : holder_d as Array; // Fetch the preallocated array
+                    lock (type_holder)
+                        lock (holder)
+                        {
+                            type_holder.SetValue(t, 0); // Insert the value to convert into the preallocated holder array
+                            Buffer.BlockCopy(type_holder, 0, holder, 0, bytes); // Perform an internal copy to the byte-based holder
+                            for (int i = 0; i < bytes; ++i)
+                                WriteByte(writeTo, holder[i], bitOffset + (i * 8)); // Write the converted value to the output array
+                        }
+                }
+                else
+                {
+                    dynamic value = t;
+                    int type_size = Marshal.SizeOf(typeof(T));
+                    for (int i = 0; i < type_size; ++i)
+                        WriteByte(writeTo, (byte)(value >> (int)(i * 8)), bitOffset + (i * 8));
                 }
                 bitOffset += offset;
             }
@@ -126,25 +146,25 @@ namespace Client
             if (type.IsArray)
             {
                 Type elementType = type.GetElementType();
-                long allocSize = GetBitAllocation(elementType);
-                var array = t as Array;
 
-                count += 2; // Int16 array size. Arrays shouldn't be syncing more than 65k elements
-
-                if (allocSize != 0) // The array contents is known: compute the data size
-                    count += allocSize * array.Length;
-                else // Unknown array contents type: iteratively assess serialization size
-                    foreach (var element in t as Array)
-                        count += GetBitCount(element);
+                count += 16; // Int16 array size. Arrays shouldn't be syncing more than 65k elements
+                foreach (var element in t as Array)
+                    count += GetBitCount(element);
             }
-            else if(IsSupportedType(type)) count += GetBitAllocation(type);
+            else if (IsSupportedType(type))
+            {
+                long ba = GetBitAllocation(type);
+                if (ba == 0) count += Encoding.UTF8.GetByteCount(t as string);
+                else if (t is bool || t is float || t is double || t is decimal) count += ba;
+                else count += BytesToRead(t, Marshal.SizeOf(t)) * 8;
+            }
             //else
             //    Debug.LogWarning("MLAPI: The type \"" + b.GetType() + "\" is not supported by the Binary Serializer. It will be ignored");
             return count;
         }
 
         private static void WriteBit(byte[] b, bool bit, long index)
-            => b[index / 8] = (byte)((b[index / 8] & (1 << (int)(index % 8))) | (bit ? 1 << (int)(index % 8) : 0));
+            => b[index / 8] = (byte)((b[index / 8] & ~(1 << (int)(index % 8))) | (bit ? 1 << (int)(index % 8) : 0));
         private static void WriteByte(byte[] b, byte value, long index)
         {
             int byteIndex = (int)(index / 8);
@@ -154,12 +174,20 @@ namespace Client
 
             b[byteIndex] = (byte)((b[byteIndex] & lower_mask) | (value << shift));
             if(shift != 0 && byteIndex + 1 < b.Length)
-                b[byteIndex + 1] = (byte)((b[byteIndex + 1] & upper_mask) | (value << (8 - shift)));
+                b[byteIndex + 1] = (byte)((b[byteIndex + 1] & upper_mask) | (value >> (8 - shift)));
         }
         private static void WriteDynamic(byte[] b, dynamic value, int byteCount, long index)
         {
             for (int i = 0; i < byteCount; ++i)
                 WriteByte(b, (byte)((value >> (8 * i)) & 0xFF), index + (8 * i));
+        }
+
+        private static int BytesToRead(dynamic integer, int maxBytes)
+        {
+            for (int i = 0; i < maxBytes; ++i)
+                if ((integer >> (8 * i)) & 0xFF <= 127)
+                    return i + 1;
+            return maxBytes;
         }
 
         // Supported datatypes for serialization
