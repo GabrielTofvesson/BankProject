@@ -422,7 +422,14 @@ namespace Tofvesson.Crypto
         
         // Swap endianness of a given integer
         public static uint SwapEndian(uint value) => (uint)(((value >> 24) & (255 << 0)) | ((value >> 8) & (255 << 8)) | ((value << 8) & (255 << 16)) | ((value << 24) & (255 << 24)));
-
+        public static ulong SwapEndian(ulong value)
+        {
+            ulong res = 0;
+            for(int i = 0; i<8; ++i)
+                res = (res << 8) | ((value >> i * 8) & 0xFF);
+            return res;
+        }
+        public static ulong RightShift(this ulong value, int shift) => shift < 0 ? value << -shift : value >> shift;
         public static string ToHexString(byte[] value)
         {
             StringBuilder builder = new StringBuilder();

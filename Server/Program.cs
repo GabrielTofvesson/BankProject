@@ -101,6 +101,14 @@ namespace Server
             server.StopRunning();
         }
 
+        private static void HandleInput()
+        {
+            while (true)
+            {
+
+            }
+        }
+
         private static string[] ParseCommand(string cmd, out long id)
         {
             int idx = cmd.IndexOf(':'), idx1;

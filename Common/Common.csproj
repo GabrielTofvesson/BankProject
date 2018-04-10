@@ -63,6 +63,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountInfo.cs" />
+    <Compile Include="BinaryCollector.cs" />
+    <Compile Include="BinaryDistributor.cs" />
     <Compile Include="Cryptography\AES.cs" />
     <Compile Include="Cryptography\CBC.cs" />
     <Compile Include="Collections.cs" />

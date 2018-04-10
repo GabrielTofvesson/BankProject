@@ -5,6 +5,7 @@ using Client;
 using Client.ConsoleForms;
 using Client.ConsoleForms.Parameters;
 using Common;
+using Tofvesson.Common;
 
 namespace ConsoleForms
 {
@@ -19,19 +20,24 @@ namespace ConsoleForms
             DebugStream = new TimeStampWriter(DebugStream, "HH:mm:ss.fff");
 
 
-
+            
             byte[] serialized;
 
-            using (BinaryCollector collector = new BinaryCollector(2))
+            
+            using (BinaryCollector collector = new BinaryCollector(4))
             {
                 collector.Push(true);
-                collector.Push(new double[] { 6.0, 5.0 });
+                collector.Push(new double[] { 6.0, 123 });
+                collector.Push(new float[] { 512, 1.2f, 1.337f});
+                collector.Push(5);
                 serialized = collector.ToArray();
             }
 
             BinaryDistributor bd = new BinaryDistributor(serialized);
             bool bit = bd.ReadBit();
             double[] result = bd.ReadDoubleArray();
+            float[] f = bd.ReadFloatArray();
+            int number = bd.ReadInt();
 
             Padding p = new AbsolutePadding(2, 2, 1, 1);
 
