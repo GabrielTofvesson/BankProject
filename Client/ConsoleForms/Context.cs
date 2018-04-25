@@ -53,5 +53,16 @@ namespace Client.ConsoleForms
                     ((DialogView)v).RegisterSelectListener(listener);
             }
         }
+        protected void Show(View v) => controller.AddView(v);
+        protected void Show(string viewID) => controller.AddView(views.GetNamed(viewID));
+        protected T GetView<T>(string viewID) where T : View => (T) views.GetNamed(viewID);
+        protected View GetView(string viewID) => views.GetNamed(viewID);
+        protected void Hide(string viewID) => controller.CloseView(views.GetNamed(viewID));
+        protected void Hide(View v) => controller.CloseView(v);
+        protected void HideAll()
+        {
+            foreach (var viewEntry in views)
+                Hide(viewEntry.Item2);
+        }
     }
 }

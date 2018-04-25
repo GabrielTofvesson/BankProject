@@ -62,14 +62,14 @@ namespace Client.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
-        ///&lt;Resources&gt;
+        ///&lt;Resources xmlns=&quot;Client.ConsoleForms.Graphics&quot;&gt;
         ///  &lt;DialogView id=&quot;EmptyFieldError&quot;
         ///    padding_left=&quot;2&quot;
         ///    padding_right=&quot;2&quot;
         ///    padding_top=&quot;1&quot;
         ///    padding_bottom=&quot;1&quot;&gt;
         ///    &lt;Options&gt;
-        ///      &lt;Option&gt;Ok&lt;/Option&gt;
+        ///      &lt;Option&gt;@string/GENERIC_accept&lt;/Option&gt;
         ///    &lt;/Options&gt;
         ///    &lt;Text&gt;@string/ERR_empty&lt;/Text&gt;
         ///  &lt;/DialogView&gt;
@@ -84,9 +84,29 @@ namespace Client.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] e_0x100 {
+            get {
+                object obj = ResourceManager.GetObject("e_0x100", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] e_0x200 {
             get {
                 object obj = ResourceManager.GetObject("e_0x200", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] n_0x100 {
+            get {
+                object obj = ResourceManager.GetObject("n_0x100", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -111,11 +131,10 @@ namespace Client.Properties {
         ///                padding_top=&quot;1&quot;
         ///                padding_bottom=&quot;1&quot;&gt;
         ///    &lt;Fields&gt;
-        ///      &lt;Field input_type=&quot;decimal&quot; max_length=&quot;15&quot;&gt;Server IP:&lt;/Field&gt;
-        ///      &lt;Field default=&quot;80&quot; input_type=&quot;integer&quot; max_length=&quot;5&quot;&gt;Port:&lt;/Field&gt;
+        ///      &lt;Field input_type=&quot;decimal&quot; max_length=&quot;15&quot;&gt;@string/NC_ip&lt;/Field&gt;
+        ///      &lt;Field default=&quot;80&quot; input_type=&quot;integer&quot; max_length=&quot;5&quot;&gt;@string/NC_port&lt;/Field&gt;
         ///    &lt;/Fields&gt;
-        ///    &lt;Text&gt;@string/NC_head&lt;/Text&gt;
-        ///  &lt;/InputVie [rest of string was truncated]&quot;;.
+        ///    &lt;Text&gt;@string/NC_head&lt;/Text&gt;        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Networking {
             get {
@@ -142,10 +161,10 @@ namespace Client.Properties {
         ///    padding_right=&quot;2&quot;
         ///    padding_top=&quot;1&quot;
         ///    padding_bottom=&quot;1&quot;&gt;
-        ///    &lt;Text&gt;Balance: $balance&lt;/Text&gt;
+        ///    &lt;Text&gt;@string/SE_bal&lt;/Text&gt;
         ///  &lt;/TextView&gt;
         ///  
-        ///  &lt;ListView id= [rest of string was truncated]&quot;;.
+        ///  &lt;ListView id=&quot;me [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Session {
             get {
@@ -165,10 +184,10 @@ namespace Client.Properties {
         ///             padding_bottom=&quot;1&quot;
         ///             width=&quot;42&quot;&gt;
         ///    &lt;Options&gt;
-        ///      &lt;Option event=&quot;Setup:Login&quot; close=&quot;true&quot;&gt;Login&lt;/Option&gt;
-        ///      &lt;Option event=&quot;Setup:Register&quot; close=&quot;true&quot;&gt;Register&lt;/Option&gt;
+        ///      &lt;Option event=&quot;Setup:Login&quot; close=&quot;true&quot;&gt;@string/SU_login_label&lt;/Option&gt;
+        ///      &lt;Option event=&quot;Setup:Register&quot; close=&quot;true&quot;&gt;@string/SU_reg_label&lt;/Option&gt;
         ///    &lt;/Options&gt;
-        ///    &lt;Text&gt;Welcome to the Tofvesson banking [rest of string was truncated]&quot;;.
+        ///    &lt;Text&gt;@st [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Setup {
             get {
@@ -182,9 +201,11 @@ namespace Client.Properties {
         ///	&lt;Entry name=&quot;NC_head&quot;&gt;Server configuration&lt;/Entry&gt;
         ///	&lt;Entry name=&quot;NC_sec&quot;&gt;The selected server&apos;s identity could not be verified. This implies that it is not an official server. Continue?&lt;/Entry&gt;
         ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Connecting to server...&lt;/Entry&gt;
-        ///
-        ///	&lt;Entry name=&quot;ERR_empty&quot;&gt;One of more required field was empty!&lt;/Entry&gt;
-        ///&lt;/Strings&gt;.
+        ///	&lt;Entry name=&quot;NC_next&quot;&gt;Continue&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_cancel&quot;&gt;Cancel&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_ip&quot;&gt;Server IP:&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_port&quot;&gt;Port:&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_iperr&quot;&gt;The s [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string strings_lang_en_GB {
             get {
@@ -198,9 +219,11 @@ namespace Client.Properties {
         ///	&lt;Entry name=&quot;NC_head&quot;&gt;Server configuration&lt;/Entry&gt;
         ///	&lt;Entry name=&quot;NC_sec&quot;&gt;The selected server&apos;s identity could not be verified. This implies that it is not an official server. Continue?&lt;/Entry&gt;
         ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Connecting to server...&lt;/Entry&gt;
-        ///
-        ///	&lt;Entry name=&quot;ERR_empty&quot;&gt;One of more required field was empty!&lt;/Entry&gt;
-        ///&lt;/Strings&gt;.
+        ///	&lt;Entry name=&quot;NC_next&quot;&gt;Continue&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_cancel&quot;&gt;Cancel&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_ip&quot;&gt;Server IP:&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_port&quot;&gt;Port:&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_iperr&quot;&gt;The s [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string strings_lang_en_US {
             get {
@@ -214,9 +237,11 @@ namespace Client.Properties {
         ///	&lt;Entry name=&quot;NC_head&quot;&gt;Serverkonfiguration&lt;/Entry&gt;
         ///	&lt;Entry name=&quot;NC_sec&quot;&gt;Den valda serverns identitet kunde inte verifieras. Detta innebär att det inte är en officiell server. Fortsätt?&lt;/Entry&gt;
         ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Kopplar upp mot servern...&lt;/Entry&gt;
-        ///
-        ///	&lt;Entry name=&quot;ERR_empty&quot;&gt;Ett eller fler obligatoriska inputfält är tomma!&lt;/Entry&gt;
-        ///&lt;/Strings&gt;.
+        ///	&lt;Entry name=&quot;NC_next&quot;&gt;Fortsätt&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_cancel&quot;&gt;Avbryt&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_ip&quot;&gt;Server IP:&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_port&quot;&gt;Port:&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;NC_iperr&quot;&gt;De [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string strings_lang_sv_SE {
             get {
@@ -226,11 +251,11 @@ namespace Client.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
-        ///&lt;Lang&gt;
-        ///	&lt;Default&gt;sv_SE&lt;/Default&gt;
-        ///	&lt;Fallback priority=&quot;0&quot;&gt;en_US&lt;/Fallback&gt;
-        ///	&lt;Fallback priority=&quot;1&quot;&gt;en_GB&gt;&lt;/Fallback&gt;
-        ///&lt;/Lang&gt;.
+        ///&lt;Strings&gt;
+        ///	&lt;Lang priority=&quot;0&quot;&gt;sv_SE&lt;/Lang&gt;
+        ///	&lt;Lang priority=&quot;1&quot;&gt;en_US&lt;/Lang&gt;
+        ///	&lt;Lang priority=&quot;2&quot;&gt;en_GB&lt;/Lang&gt;
+        ///&lt;/Strings&gt;.
         /// </summary>
         internal static string strings_meta {
             get {

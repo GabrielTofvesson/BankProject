@@ -49,6 +49,12 @@ namespace Client.ConsoleForms
             if (resizeListener) EnableResizeListener();
             RegisterListener((w, h) =>
             {
+                // Corrective resizing to prevent rendering issues
+                if (w < 20 || h < 20)
+                {
+                    Console.SetWindowSize(Math.Max(w, 60), Math.Max(h, 40));
+                    return;
+                }
                 width = w;
                 height = h;
                 Draw();
@@ -56,6 +62,9 @@ namespace Client.ConsoleForms
 
             RegisterListener((w1, h1, w2, h2) =>
             {
+                // Corrective resizing to prevent rendering issues
+                if (w2 < 20 || h2 < 20)
+                    Console.SetWindowSize(Math.Max(w2, 60), Math.Max(h2, 40));
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.Clear();
             });

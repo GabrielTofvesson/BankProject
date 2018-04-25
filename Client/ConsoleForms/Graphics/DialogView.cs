@@ -21,7 +21,7 @@ namespace Client.ConsoleForms.Graphics
             get => select;
             set => select = value < 0 ? 0 : value >= options.Length ? options.Length - 1 : value;
         }
-        public override Region Occlusion => new Region(new Rectangle(0, -1, ContentWidth + 2, ContentHeight + 2));
+        public override Region Occlusion => new Region(new Rectangle(-1, -1, ContentWidth + 4, ContentHeight + 2));
 
         public ConsoleColor SelectColor { get; set; }
         public ConsoleColor NotSelectColor { get; set; }
@@ -33,7 +33,7 @@ namespace Client.ConsoleForms.Graphics
             base(parameters.SetAttribute("width",
                 Math.Max(
                     parameters.AttribueAsInt("width") < 1 ? parameters.NestedText("Text").Length : parameters.AttribueAsInt("width"),
-                    ComputeLength(parameters.Get("Options").CollectSub("Option"))
+                    ComputeLength(parameters.Get("Options")?.CollectSub("Option") ?? new Tuple<string, string>[0])
                 )), lang)
         {
             ViewData optionsData = parameters.Get("Options");

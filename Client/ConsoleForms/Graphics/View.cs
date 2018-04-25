@@ -39,7 +39,7 @@ namespace Client.ConsoleForms.Graphics
             BackgroundColor = (ConsoleColor)parameters.AttribueAsInt("color_background", (int)ConsoleColor.White);
             TextColor = (ConsoleColor)parameters.AttribueAsInt("color_text", (int)ConsoleColor.Black);
             Border = ' ';
-            DrawBorder = parameters.attributes.ContainsKey("border");
+            DrawBorder = true;// parameters.attributes.ContainsKey("border");
             I18n = lang;
 
             back_data = parameters.GetAttribute("back");
@@ -68,17 +68,17 @@ namespace Client.ConsoleForms.Graphics
         public virtual void _DrawBorder(int left, int top)
         {
             Console.BackgroundColor = BorderColor;
-            Console.SetCursorPosition(left, top - 1);
-            Console.Write(Filler(Border, ContentWidth + 1));
+            Console.SetCursorPosition(left - 1, top - 1);
+            Console.Write(Filler(Border, ContentWidth + 2));
             for (int i = -1; i < ContentHeight; ++i)
             {
-                Console.SetCursorPosition(left, top + i);
+                Console.SetCursorPosition(left-1, top + i);
                 Console.Write(Filler(Border, 2));
-                Console.SetCursorPosition(left + ContentWidth, top + i);
+                Console.SetCursorPosition(left + ContentWidth + 1, top + i);
                 Console.Write(Filler(Border, 2));
             }
-            Console.SetCursorPosition(left, top + ContentHeight);
-            Console.Write(Filler(Border, ContentWidth + 2));
+            Console.SetCursorPosition(left-1, top + ContentHeight);
+            Console.Write(Filler(Border, ContentWidth + 4));
             Console.BackgroundColor = ConsoleColor.Black;
         }
         protected abstract void _Draw(int left, ref int top);

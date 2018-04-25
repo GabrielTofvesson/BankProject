@@ -80,6 +80,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Resources\0x100.e" />
+    <None Include="Resources\0x100.n" />
     <None Include="Resources\0x200.e" />
     <None Include="Resources\0x200.n" />
   </ItemGroup>

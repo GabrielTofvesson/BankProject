@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Tofvesson.Common;
 using Tofvesson.Crypto;
 
 namespace Common
@@ -155,7 +156,7 @@ namespace Common
             {
                 lock (messageBuffer)
                 {
-                    foreach (byte[] message in messageBuffer) Connection.Send(NetSupport.WithHeader(message));
+                    foreach (byte[] message in messageBuffer) Connection.Send(NetSupport.WithHeader(Crypto.Encrypt(message)));
                     if (messageBuffer.Count > 0) lastComm = DateTime.Now.Ticks;
                     messageBuffer.Clear();
                 }
@@ -166,8 +167,8 @@ namespace Common
                 ibuf.EnqueueAll(buffer, 0, read);
                 if (read > 0) lastComm = DateTime.Now.Ticks;
             }
-            if (mLen == 0 && ibuf.Count >= 4)
-                mLen = Support.ReadInt(ibuf.Dequeue(4), 0);
+            if (mLen == 0 && BinaryHelpers.TryReadVarInt(ibuf, 0, out mLen))
+                ibuf.Dequeue(BinaryHelpers.VarIntSize(mLen));
             if (mLen != 0 && ibuf.Count >= mLen)
             {
                 // Got a full message. Parse!
@@ -189,12 +190,13 @@ namespace Common
                     byte[] read = Crypto.Decrypt(message);
 
                     // Read the decrypted message length
-                    int mlenInner = Support.ReadInt(read, 0);
+                    int mlenInner = (int) BinaryHelpers.ReadVarInt(read, 0);
+                    int size = BinaryHelpers.VarIntSize(mlenInner);
                     if (mlenInner == 0) return false; // Got a ping packet
 
                     // Send the message to the handler and get a response
                     bool live = true;
-                    string response = handler(read.SubArray(4, 4 + mlenInner).ToUTF8String(), assignedValues, ref live);
+                    string response = handler(read.SubArray(size, size + mlenInner).ToUTF8String(), assignedValues, ref live);
 
                     // Send the response (if given one) and drop the connection if the handler tells us to
                     if (response != null) Connection.Send(NetSupport.WithHeader(Crypto.Encrypt(NetSupport.WithHeader(response.ToUTF8Bytes()))));
@@ -205,7 +207,7 @@ namespace Common
                         {
                             Connection.Close();
                         }
-                        catch (Exception) { }
+                        catch { }
                         return true;
                     }
                 }
@@ -220,13 +222,12 @@ namespace Common
         /// Disconnect from server
         /// </summary>
         /// <returns></returns>
-        public virtual async Task<object> Disconnect()
+        public virtual async Task Disconnect()
         {
             NetSupport.DoStateCheck(IsAlive, true);
             Running = false;
 
-
-            return await new TaskFactory().StartNew<object>(() => { eventListener.Join(); return null; });
+            await new TaskFactory().StartNew(eventListener.Join);
         }
 
         // Methods for sending data to the server
@@ -244,7 +245,7 @@ namespace Common
         public virtual void Send(byte[] message)
         {
             NetSupport.DoStateCheck(IsAlive, true);
-            lock (messageBuffer) messageBuffer.Enqueue(Crypto.Encrypt(NetSupport.WithHeader(message)));
+            lock (messageBuffer) messageBuffer.Enqueue(NetSupport.WithHeader(message));
         }
 
         private static bool Read(Socket sock, List<byte> read, byte[] buf, long timeout)

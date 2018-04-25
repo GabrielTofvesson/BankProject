@@ -32,12 +32,13 @@ namespace Tofvesson.Crypto
 
             int chunks = msg.Length / 64;
 
-            // Perform hashing for each 512-bit block
-            for(int i = 0; i<chunks; ++i)
-            {
+            // Split block into words (allocated out here to prevent massive garbage buildup)
+            uint[] w = new uint[80];
 
-                // Split block into words
-                uint[] w = new uint[80];
+            // Perform hashing for each 512-bit block
+            for (int i = 0; i<chunks; ++i)
+            {
+                // Compute initial source data from padded message
                 for(int j = 0; j<16; ++j)
                     w[j] |= (uint) ((msg[i * 64 + j * 4] << 24) | (msg[i * 64 + j * 4 + 1] << 16) | (msg[i * 64 + j * 4 + 2] << 8) | (msg[i * 64 + j * 4 + 3] << 0));
 
@@ -63,6 +64,8 @@ namespace Tofvesson.Crypto
                     b = a;
                     a = tmp;
                 }
+
+                // Add to result
                 h0 += a;
                 h1 += b;
                 h2 += c;
@@ -71,6 +74,88 @@ namespace Tofvesson.Crypto
             }
 
             return Support.WriteContiguous(new byte[20], 0, Support.SwapEndian(h0), Support.SwapEndian(h1), Support.SwapEndian(h2), Support.SwapEndian(h3), Support.SwapEndian(h4));
+        }
+
+        public struct SHA1Result
+        {
+            public uint i0, i1, i2, i3, i4;
+            public byte Get(int idx) => (byte)((idx < 4 ? i0 : idx < 8 ? i1 : idx < 12 ? i2 : idx < 16 ? i3 : i4)>>(8*(idx%4)));
+        }
+        public static SHA1Result SHA1_Opt(byte[] message)
+        {
+            SHA1Result result = new SHA1Result
+            {
+                // Initialize buffers
+                i0 = 0x67452301,
+                i1 = 0xEFCDAB89,
+                i2 = 0x98BADCFE,
+                i3 = 0x10325476,
+                i4 = 0xC3D2E1F0
+            };
+
+            // Pad message
+            long len = message.Length * 8;
+            int
+                ml = message.Length + 1,
+                max = ml + ((960 - (ml * 8 % 512)) % 512) / 8 + 8;
+
+            // Replaces the allocation of a lot of bytes
+            byte GetMsg(int idx)
+            {
+                if (idx < message.Length)
+                    return message[idx];
+                else if (idx == message.Length)
+                    return 0x80;
+                else if (max - idx <= 8)
+                    return (byte)((len >> ((max - 1 - idx) * 8)) & 255);
+                return 0;
+            }
+
+            int chunks = max / 64;
+
+            // Replaces the recurring allocation of 80 uints
+            uint ComputeIndex(int block, int idx)
+            {
+                if (idx < 16)
+                    return (uint)((GetMsg(block * 64 + idx * 4) << 24) | (GetMsg(block * 64 + idx * 4 + 1) << 16) | (GetMsg(block * 64 + idx * 4 + 2) << 8) | (GetMsg(block * 64 + idx * 4 + 3) << 0));
+                else
+                    return Rot(ComputeIndex(block, idx - 3) ^ ComputeIndex(block, idx - 8) ^ ComputeIndex(block, idx - 14) ^ ComputeIndex(block, idx - 16), 1);
+            }
+
+            // Perform hashing for each 512-bit block
+            for (int i = 0; i < chunks; ++i)
+            {
+
+                // Initialize chunk-hash
+                uint
+                    a = result.i0,
+                    b = result.i1,
+                    c = result.i2,
+                    d = result.i3,
+                    e = result.i4;
+
+                // Do hash rounds
+                for (int t = 0; t < 80; ++t)
+                {
+                    uint tmp = Rot(a, 5) + func(t, b, c, d) + e + K(t) + ComputeIndex(i, t);
+                    e = d;
+                    d = c;
+                    c = Rot(b, 30);
+                    b = a;
+                    a = tmp;
+                }
+                result.i0 += a;
+                result.i1 += b;
+                result.i2 += c;
+                result.i3 += d;
+                result.i4 += e;
+            }
+            result.i0 = Support.SwapEndian(result.i0);
+            result.i1 = Support.SwapEndian(result.i1);
+            result.i2 = Support.SwapEndian(result.i2);
+            result.i3 = Support.SwapEndian(result.i3);
+            result.i4 = Support.SwapEndian(result.i4);
+            return result;
         }
 
         private static uint func(int t, uint b, uint c, uint d) =>

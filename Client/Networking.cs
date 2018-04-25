@@ -3,9 +3,11 @@ using Common.Cryptography.KeyExchange;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Tofvesson.Common;
 using Tofvesson.Crypto;
 
 namespace Client
@@ -17,52 +19,57 @@ namespace Client
 
         protected Dictionary<long, Promise> promises = new Dictionary<long, Promise>();
         protected NetClient client;
-        private bool authenticating = true, authenticated = false;
-        public bool Authenticating { get => authenticating; }
-        public bool PeerIsAuthenticated { get => authenticated; }
-        public RSA AuthenticatedKeys { get; private set; }
-        public bool IsAlive { get => client.IsAlive; }
-        
-        public BankNetInteractor(string address, short port, bool checkIdentity = true)
+        protected readonly IPAddress addr;
+        protected readonly short port;
+        protected readonly EllipticDiffieHellman keyExchange;
+        public bool IsAlive { get => client != null && client.IsAlive; }
+        public bool IsLoggedIn
         {
-            if(checkIdentity)
-                new Task(() =>
-                {
-                    //AuthenticatedKeys = NetClient.CheckServerIdentity(address, port, provider);
-                    authenticating = false;
-                    authenticated = true;// AuthenticatedKeys != null;
-                }).Start();
-            else
+            get
             {
-                authenticating = false;
-                authenticated = false;
+                if (loginTimeout >= DateTime.Now.Ticks) loginTimeout = -1;
+                return loginTimeout != -1;
             }
-            var addr = System.Net.IPAddress.Parse(address);
+        }
+        protected long loginTimeout = -1;
+        protected string sessionID = null;
+        
+
+        public BankNetInteractor(string address, short port)
+        {
+            this.addr = IPAddress.Parse(address);
+            this.port = port;
+            this.keyExchange = EllipticDiffieHellman.Curve25519(EllipticDiffieHellman.Curve25519_GeneratePrivate(provider));
+        }
+
+        protected virtual async Task Connect()
+        {
+            if (IsAlive) return;
             client = new NetClient(
-                EllipticDiffieHellman.Curve25519(EllipticDiffieHellman.Curve25519_GeneratePrivate(provider)),
+                keyExchange,
                 addr,
                 port,
                 MessageRecievedHandler,
                 ClientConnectionHandler,
                 65536); // 64 KiB buffer
-        }
-
-        public virtual Task Connect()
-        {
             client.Connect();
             Task t = new Task(() =>
             {
                 while (!client.IsAlive) System.Threading.Thread.Sleep(125);
             });
             t.Start();
-            return t;
+            await t;
         }
-        public async virtual Task<object> Disconnect() => await client.Disconnect();
+        public async virtual Task CancelAll()
+        {
+            if (client == null) return;
+            await client.Disconnect();
+        }
 
         public long RegisterListener(OnClientConnectStateChanged stateListener)
         {
-            long tkn;
-            changeListeners[tkn = GetListenerToken()] = stateListener;
+            long tkn = GetListenerToken();
+            changeListeners[tkn] = stateListener;
             return tkn;
         }
 
@@ -74,9 +81,8 @@ namespace Client
             if (err || !promises.ContainsKey(pID)) return null;
             Promise p = promises[pID];
             promises.Remove(pID);
-            p.Value = response;
-            p.HasValue = true;
-            p.Subscribe?.Invoke(p);
+            PostPromise(p, response);
+            if (promises.Count == 0) keepAlive = false;
             return null;
         }
 
@@ -86,7 +92,80 @@ namespace Client
                 listener(client, connect);
         }
 
-        public virtual Promise CheckAccountAvailability(string username)
+        public async virtual Task<Promise> CheckAccountAvailability(string username)
+        {
+            await Connect();
+            if (username.Length > 60)
+                return new Promise
+                {
+                    HasValue = true,
+                    Value = "ERROR"
+                };
+            client.Send(CreateCommandMessage("Avail", username.ToBase64String(), out long pID));
+            return RegisterPromise(pID);
+        }
+
+        public async virtual Task<Promise> Authenticate(string username, string password)
+        {
+            await Connect();
+            if (username.Length > 60)
+                return new Promise
+                {
+                    HasValue = true,
+                    Value = "ERROR"
+                };
+            client.Send(CreateCommandMessage("Auth", username.ToBase64String()+":"+password.ToBase64String(), out long pID));
+
+            return RegisterEventPromise(pID, p =>
+            {
+                bool b = !p.Value.StartsWith("ERROR");
+                PostPromise(p.handler, b);
+                if (b)
+                {
+                    loginTimeout = 280 * TimeSpan.TicksPerSecond;
+                    sessionID = p.Value;
+                }
+                return false;
+            });
+        }
+
+        public async virtual Task<Promise> CreateAccount(string accountName)
+        {
+            if (!IsLoggedIn) throw new SystemException("Not logged in");
+            await Connect();
+            client.Send(CreateCommandMessage("Account_Create", $"{sessionID}:{accountName}", out long PID));
+            return RegisterEventPromise(PID, RefreshSession);
+        }
+
+        public async virtual Task<Promise> CheckIdentity(RSA check, ushort nonce)
+        {
+            long pID;
+            Task connect = Connect();
+            string ser;
+            using(BitWriter writer = new BitWriter())
+            {
+                writer.WriteULong(nonce);
+                ser = CreateCommandMessage("Verify", Convert.ToBase64String(writer.Finalize()), out pID);
+            }
+            await connect;
+            client.Send(ser);
+            return RegisterEventPromise(pID, manager =>
+            {
+                BitReader reader = new BitReader(Convert.FromBase64String(manager.Value));
+                try
+                {
+                    RSA remote = RSA.Deserialize(reader.ReadByteArray(), out int _);
+                    PostPromise(manager.handler, new BigInteger(remote.Decrypt(reader.ReadByteArray(), null, true)).Equals((BigInteger)nonce) && remote.Equals(check));
+                }
+                catch
+                {
+                    PostPromise(manager.handler, false);
+                }
+                return false;
+            });
+        }
+
+        public async virtual Task<Promise> Register(string username, string password)
         {
             if (username.Length > 60)
                 return new Promise
@@ -94,42 +173,42 @@ namespace Client
                     HasValue = true,
                     Value = "ERROR"
                 };
-            client.Send(CreateCommandMessage("Avail", username, out long pID));
-            Promise p = new Promise();
-            promises[pID] = p;
-            return p;
+            await Connect();
+            client.Send(CreateCommandMessage("Reg", username.ToBase64String() + ":" + password.ToBase64String(), out long pID));
+            return RegisterPromise(pID);
         }
 
-        public virtual Promise Authenticate(string username, string password)
+        public async virtual Task Logout(string sessionID)
         {
-            if (username.Length > 60)
-                return new Promise
-                {
-                    HasValue = true,
-                    Value = "ERROR"
-                };
-            client.Send(CreateCommandMessage("Auth", username+":"+password, out long pID));
-            Promise p = new Promise();
-            promises[pID] = p;
-            return p;
+            if (!IsLoggedIn) return; // No need to unnecessarily trigger a logout that we know will fail
+            await Connect();
+            client.Send(CreateCommandMessage("Logout", sessionID, out long _));
         }
 
-        public virtual Promise Register(string username, string password)
+        protected Promise RegisterPromise(long pID)
         {
-            if (username.Length > 60)
-                return new Promise
-                {
-                    HasValue = true,
-                    Value = "ERROR"
-                };
-            client.Send(CreateCommandMessage("Reg", username + ":" + password, out long pID));
             Promise p = new Promise();
             promises[pID] = p;
             return p;
         }
 
-        public virtual void Logout(string sessionID)
-            => client.Send(CreateCommandMessage("Logout", sessionID, out long _));
+        protected Promise RegisterEventPromise(long pID, Func<Promise, bool> a)
+        {
+            Promise p = RegisterPromise(pID);
+            p.handler = new Promise();
+            p.Subscribe = p1 =>
+            {
+                // If true, propogate result
+                if (a(p1)) PostPromise(p1.handler, p1.Value);
+            };
+            return p.handler;
+        }
+
+        protected bool RefreshSession(Promise p)
+        {
+            if (!p.Value.StartsWith("ERROR")) loginTimeout = 280 * TimeSpan.TicksPerSecond;
+            return true;
+        }
 
         protected long GetNewPromiseUID()
         {
@@ -147,9 +226,9 @@ namespace Client
             return l;
         }
 
-        protected static void PostPromise(Promise p, string value)
+        protected static void PostPromise(Promise p, dynamic value)
         {
-            p.Value = value;
+            p.Value = value?.ToString() ?? "null";
             p.HasValue = true;
             p.Subscribe?.Invoke(p);
         }
@@ -165,6 +244,7 @@ namespace Client
     public delegate void Event(Promise p);
     public class Promise
     {
+        internal Promise handler = null; // For chained promise management
         private Event evt;
         public string Value { get; internal set; }
         public bool HasValue { get; internal set; }
@@ -173,10 +253,17 @@ namespace Client
             get => evt;
             set
             {
-                evt = value;
+                // Allows clearing subscriptions
+                if (evt == null || value == null) evt = value;
+                else evt += value;
                 if (HasValue)
                     evt(this);
             }
+        }
+        public static Promise AwaitPromise(Task<Promise> p)
+        {
+            if (!p.IsCompleted) p.RunSynchronously();
+            return p.Result;
         }
     }
 }

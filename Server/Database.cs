@@ -179,15 +179,24 @@ namespace Server
             writer.WriteStartElement("User");
             if (u.IsAdministrator) writer.WriteAttributeString("admin", "", "true");
             writer.WriteElementString("Name", u.Name);
-            writer.WriteElementString("Balance", u.Balance.ToString());
+            //writer.WriteElementString("Balance", u.Balance.ToString());
             writer.WriteElementString("Password", u.PasswordHash);
             writer.WriteElementString("Salt", u.Salt);
-            foreach (var tx in u.History)
+            foreach(var acc in u.accounts)
             {
-                writer.WriteStartElement("Transaction");
-                writer.WriteElementString(tx.to.Equals(u.Name) ? "From" : "To", tx.to.Equals(u.Name) ? tx.from : tx.to);
-                writer.WriteElementString("Balance", tx.amount.ToString());
-                if (tx.meta != null && tx.meta.Length != 0) writer.WriteElementString("Meta", tx.meta);
+                writer.WriteStartElement("Account");
+                writer.WriteElementString("Name", acc.name);
+                writer.WriteElementString("Balance", acc.balance.ToString());
+                foreach (var tx in acc.History)
+                {
+                    writer.WriteStartElement("Transaction");
+                    writer.WriteElementString("FromAccount", tx.fromAccount);
+                    writer.WriteElementString("ToAccount", tx.toAccount);
+                    writer.WriteElementString(tx.to.Equals(u.Name) ? "From" : "To", tx.to.Equals(u.Name) ? tx.from : tx.to);
+                    writer.WriteElementString("Balance", tx.amount.ToString());
+                    if (tx.meta != null && tx.meta.Length != 0) writer.WriteElementString("Meta", tx.meta);
+                    writer.WriteEndElement();
+                }
                 writer.WriteEndElement();
             }
             writer.WriteEndElement();
@@ -225,9 +234,10 @@ namespace Server
             return e;
         }
 
-        public User GetUser(string name) => FirstUser(u => u.Name.Equals(name));
+        public User GetUser(string name) => name.Equals("System") ? null : FirstUser(u => u.Name.Equals(name));
         public User FirstUser(Predicate<User> p)
         {
+            if (p == null) return null; // Done to conveniently handle system insertions
             User u;
             foreach (var entry in loadedUsers)
                 if (p(u=FromEncoded(entry)))
@@ -248,7 +258,7 @@ namespace Server
                     if (reader.Name.Equals("User"))
                     {
                         User n = User.Parse(ReadEntry(reader), this);
-                        if (n != null && p(n=FromEncoded(n)))
+                        if (n != null && p(FromEncoded(n)))
                         {
                             if (!loadedUsers.Contains(n)) loadedUsers.Add(n);
                             return n;
@@ -259,19 +269,30 @@ namespace Server
             return null;
         }
 
-        public bool AddTransaction(string sender, string recipient, long amount, string message = null)
+        public bool AddTransaction(string sender, string recipient, decimal amount, string fromAccount, string toAccount, string message = null)
         {
             User from = FirstUser(u => u.Name.Equals(sender));
             User to = FirstUser(u => u.Name.Equals(recipient));
+            Account fromAcc = from?.GetAccount(fromAccount);
+            Account toAcc = to.GetAccount(toAccount);
 
-            if (to == null || (from == null && !to.IsAdministrator)) return false;
+            // Errant states
+            if (
+                to == null ||
+                (from == null && !to.IsAdministrator) ||
+                toAcc == null ||
+                (from != null && fromAcc == null) ||
+                (from != null && fromAcc.balance<amount)
+                ) return false;
 
-            Transaction tx = new Transaction(from == null ? "System" : from.Name, to.Name, amount, message);
-            to.History.Add(tx);
+            Transaction tx = new Transaction(from == null ? "System" : from.Name, to.Name, amount, message, fromAccount, toAccount);
+            toAcc.History.Add(tx);
+            toAcc.balance += amount;
             AddUser(to);
             if (from != null)
             {
-                from.History.Add(tx);
+                fromAcc.History.Add(tx);
+                fromAcc.balance -= amount;
                 AddUser(from);
             }
             return true;
@@ -299,8 +320,8 @@ namespace Server
             return l.ToArray();
         }
 
-        public bool ContainsUser(string user) => FirstUser(u => u.Name.Equals(user)) != null;
-        public bool ContainsUser(User user) => FirstUser(u => u.Name.Equals(user.Name)) != null;
+        public bool ContainsUser(string user) => user.Equals("System") || FirstUser(u => u.Name.Equals(user)) != null;
+        public bool ContainsUser(User user) => user.Name.Equals("System") || FirstUser(u => u.Name.Equals(user.Name)) != null;
 
         private bool Traverse(XmlReader reader, params string[] downTo)
         {
@@ -324,11 +345,15 @@ namespace Server
         {
             User u = new User(entry);
             u.Name = Encode(u.Name);
-            for (int i = 0; i < u.History.Count; ++i)
+            foreach(var account in u.accounts)
             {
-                u.History[i].to = Encode(u.History[i].to);
-                u.History[i].from = Encode(u.History[i].from);
-                u.History[i].meta = Encode(u.History[i].meta);
+                account.name = Encode(account.name);
+                foreach(var transaction in account.History)
+                {
+                    transaction.to = Encode(transaction.to);
+                    transaction.from = Encode(transaction.from);
+                    transaction.meta = Encode(transaction.meta);
+                }
             }
             return u;
         }
@@ -337,11 +362,15 @@ namespace Server
         {
             User u = new User(entry);
             u.Name = Decode(u.Name);
-            for (int i = 0; i < u.History.Count; ++i)
+            foreach (var account in u.accounts)
             {
-                u.History[i].to = Decode(u.History[i].to);
-                u.History[i].from = Decode(u.History[i].from);
-                u.History[i].meta = Decode(u.History[i].meta);
+                account.name = Decode(account.name);
+                foreach (var transaction in account.History)
+                {
+                    transaction.to = Decode(transaction.to);
+                    transaction.from = Decode(transaction.from);
+                    transaction.meta = Decode(transaction.meta);
+                }
             }
             return u;
         }
@@ -380,6 +409,8 @@ namespace Server
                 return this;
             }
 
+            public Entry AddNested(string name, string text) => AddNested(new Entry(name, text));
+
             public Entry AddAttribute(string key, string value)
             {
                 Attributes[key] = value;
@@ -415,40 +446,56 @@ namespace Server
             }
         }
 
+        public class Account
+        {
+            public User owner;
+            public decimal balance;
+            public string name;
+            public List<Transaction> History { get; }
+            public Account(User owner, decimal balance, string name)
+            {
+                History = new List<Transaction>();
+                this.owner = owner;
+                this.balance = balance;
+                this.name = name;
+            }
+            public Account(Account copy) : this(copy.owner, copy.balance, copy.name)
+                => History.AddRange(copy.History);
+            public Account AddTransaction(Transaction tx)
+            {
+                History.Add(tx);
+                return this;
+            }
+        }
+
         public class User
         {
             public bool ProblematicTransactions { get; internal set; }
             public string Name { get; internal set; }
-            public long Balance { get; set; }
             public bool IsAdministrator { get; set; }
             public string PasswordHash { get; internal set; }
             public string Salt { get; internal set; }
-            public List<Transaction> History { get; }
-            private User()
-            {
-                Name = "";
-                History = new List<Transaction>();
-            }
+            public List<Account> accounts = new List<Account>();
 
-            public User(User copy) : this()
+            private User()
+            { }
+
+            public User(User copy)
             {
                 this.ProblematicTransactions = copy.ProblematicTransactions;
                 this.Name = copy.Name;
-                this.Balance = copy.Balance;
                 this.IsAdministrator = copy.IsAdministrator;
                 this.PasswordHash = copy.PasswordHash;
                 this.Salt = copy.Salt;
-                this.History.AddRange(copy.History);
+                accounts.AddRange(copy.accounts);
             }
 
-            public User(string name, string passHash, string salt, long balance, bool generatePass = false, List<Transaction> transactionHistory = null, bool admin = false)
-                : this(name, passHash, Encoding.UTF8.GetBytes(salt), balance, generatePass, transactionHistory, admin)
+            public User(string name, string passHash, string salt, bool generatePass = false, bool admin = false)
+                : this(name, passHash, Encoding.UTF8.GetBytes(salt), generatePass, admin)
             { }
 
-            public User(string name, string passHash, byte[] salt, long balance, bool generatePass = false, List<Transaction> transactionHistory = null, bool admin = false)
+            public User(string name, string passHash, byte[] salt, bool generatePass = false, bool admin = false)
             {
-                History = transactionHistory ?? new List<Transaction>();
-                Balance = balance;
                 Name = name;
                 IsAdministrator = admin;
                 Salt = Convert.ToBase64String(salt);
@@ -458,26 +505,30 @@ namespace Server
             public bool Authenticate(string password)
                 => Convert.ToBase64String(KDF.PBKDF2(KDF.HMAC_SHA1, Encoding.UTF8.GetBytes(password), Encoding.UTF8.GetBytes(Salt), 8192, 320)).Equals(PasswordHash);
 
-            public User AddTransaction(Transaction tx)
-            {
-                History.Add(tx);
-                return this;
-            }
-
+            public void AddAccount(Account a) => accounts.Add(a);
+            public Account GetAccount(string name) => accounts.FirstOrDefault(a => a.name.Equals(name));
             private Entry Serialize()
             {
                 Entry root = new Entry("User")
-                    .AddNested(new Entry("Name", Name))
-                    .AddNested(new Entry("Balance", Balance.ToString()).AddAttribute("omit", "true"));
-                foreach (var transaction in History)
+                    .AddNested(new Entry("Name", Name));
+                foreach (var account in accounts)
                 {
-                    Entry tx =
-                        new Entry("Transaction")
-                            .AddAttribute("omit", "true")
-                            .AddNested(new Entry(transaction.to.Equals(Name) ? "From" : "To", transaction.to.Equals(Name) ? transaction.from : transaction.to))
-                            .AddNested(new Entry("Balance", transaction.amount.ToString()));
-                    if (transaction.meta != null) tx.AddNested(new Entry("Meta", transaction.meta));
-                    root.AddNested(tx);
+                    Entry acc = new Entry("Account")
+                        .AddNested("Name", account.name)
+                        .AddNested(new Entry("Balance", account.balance.ToString()).AddAttribute("omit", "true"));
+                    foreach (var transaction in account.History)
+                    {
+                        Entry tx =
+                            new Entry("Transaction")
+                                .AddAttribute("omit", "true")
+                                .AddNested(transaction.to.Equals(Name) ? "From" : "To", transaction.to.Equals(Name) ? transaction.from : transaction.to)
+                                .AddNested("FromAccount", transaction.fromAccount)
+                                .AddNested("ToAccount", transaction.toAccount)
+                                .AddNested("Balance", transaction.amount.ToString());
+                        if (transaction.meta != null) tx.AddNested("Meta", transaction.meta);
+                        acc.AddNested(tx);
+                    }
+                    root.AddNested(acc);
                 }
                 return root;
             }
@@ -489,38 +540,68 @@ namespace Server
                 foreach (var entry in e.NestedEntries)
                 {
                     if (entry.Name.Equals("Name")) user.Name = entry.Text;
-                    else if (entry.Name.Equals("Balance")) user.Balance = long.TryParse(entry.Text, out long l) ? l : 0;
-                    else if (entry.Name.Equals("Transaction"))
+                    else if (entry.Name.Equals("Account"))
                     {
-                        string from = null;
-                        string to = null;
-                        long amount = -1;
-                        string meta = "";
-                        foreach (var e1 in entry.NestedEntries)
+                        string name = null;
+                        decimal balance = 0;
+                        List<Transaction> history = new List<Transaction>();
+                        foreach (var accountData in entry.NestedEntries)
                         {
-                            if (e1.Name.Equals("To")) to = e1.Text;
-                            else if (e1.Name.Equals("From")) from = e1.Text;
-                            else if (e1.Name.Equals("Balance")) amount = long.TryParse(e1.Text, out amount) ? amount : 0;
-                            else if (e1.Name.Equals("Meta")) meta = e1.Text;
+                            if (accountData.Name.Equals("Name")) name = accountData.Text;
+                            else if (entry.Name.Equals("Transaction"))
+                            {
+                                string fromAccount = null;
+                                string toAccount = null;
+                                string from = null;
+                                string to = null;
+                                decimal amount = -1;
+                                string meta = "";
+                                foreach (var e1 in entry.NestedEntries)
+                                {
+                                    if (e1.Name.Equals("To")) to = e1.Text;
+                                    else if (e1.Name.Equals("From")) from = e1.Text;
+                                    else if (e1.Name.Equals("FromAccount")) fromAccount = e1.Text;
+                                    else if (e1.Name.Equals("ToAccount")) toAccount = e1.Text;
+                                    else if (e1.Name.Equals("Balance")) amount = decimal.TryParse(e1.Text, out amount) ? amount : 0;
+                                    else if (e1.Name.Equals("Meta")) meta = e1.Text;
+                                }
+                                if ( // Errant states for transaction data
+                                    (from == null && to == null) ||
+                                    (from != null && to != null) ||
+                                    amount <= 0 ||
+                                    fromAccount == null ||
+                                    toAccount == null
+                                    )
+                                    user.ProblematicTransactions = true;
+                                else history.Add(new Transaction(from, to, amount, meta, fromAccount, toAccount));
+                            }
+                            else if (entry.Name.Equals("Balance")) balance = decimal.TryParse(entry.Text, out decimal l) ? l : 0;
                         }
-                        if ((from == null && to == null) || (from != null && to != null) || amount <= 0) user.ProblematicTransactions = true;
-                        else user.History.Add(new Transaction(from, to, amount, meta));
+                        if (name == null || balance < 0)
+                        {
+                            Output.Fatal($"Found errant account entry! Detected user name: {user.Name}");
+                            return null; // This is a hard error
+                        }
+                        Account a = new Account(user, balance, name);
+                        a.History.AddRange(history);
+                        user.AddAccount(a);
                     }
                     else if (entry.Name.Equals("Password")) user.PasswordHash = entry.Text;
                     else if (entry.Name.Equals("Salt")) user.Salt = entry.Text;
                 }
                 if (user.Name == null || user.Name.Length == 0 || user.PasswordHash == null || user.Salt == null || user.PasswordHash.Length==0 || user.Salt.Length==0) return null;
-                if (user.Balance < 0) user.Balance = 0;
 
                 // Populate transaction names
-                foreach (var transaction in user.History)
-                    if (transaction.from == null) transaction.from = user.Name;
-                    else if (transaction.to == null) transaction.to = user.Name;
+                foreach (var account in user.accounts)
+                    foreach (var transaction in account.History)
+                        if (transaction.from == null) transaction.from = user.Name;
+                        else if (transaction.to == null) transaction.to = user.Name;
 
                 return user;
             }
 
-            public Transaction CreateTransaction(User recipient, long amount, string message = null) => new Transaction(this.Name, recipient.Name, amount, message);
+            public Transaction CreateTransaction(User recipient, long amount, Account fromAccount, Account toAccount, string message = null) =>
+                new Transaction(this.Name, recipient.Name, amount, message, fromAccount.name, toAccount.name);
 
             public override bool Equals(object obj) => obj is User && ((User)obj).Name.Equals(Name);
 
@@ -532,13 +613,17 @@ namespace Server
 
         public class Transaction
         {
+            public string fromAccount;
+            public string toAccount;
             public string from;
             public string to;
-            public long amount;
+            public decimal amount;
             public string meta;
 
-            public Transaction(string from, string to, long amount, string meta)
+            public Transaction(string from, string to, decimal amount, string meta, string fromAccount, string toAccount)
             {
+                this.fromAccount = fromAccount;
+                this.toAccount = toAccount;
                 this.from = from;
                 this.to = to;
                 this.amount = amount;

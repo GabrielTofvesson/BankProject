@@ -157,7 +157,7 @@ namespace Client.ConsoleForms.Graphics
                 computedSize += splitInputs[i].Length;
             }
             ContentHeight += computedSize + Inputs.Length * 2;
-            ++ContentWidth; // Idk, it works, though...
+            //++ContentWidth; // Idk, it works, though...
         }
 
         protected override void _Draw(int left, ref int top)

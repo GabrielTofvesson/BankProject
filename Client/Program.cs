@@ -1,45 +1,31 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Client;
 using Client.ConsoleForms;
 using Client.ConsoleForms.Parameters;
 using Common;
-using Tofvesson.Common;
+using Tofvesson.Crypto;
 
 namespace ConsoleForms
 {
+
     class Program
     {
+        private static readonly RandomProvider provider = new RegularRandomProvider(new Random(1337));
         public static TextWriter DebugStream = new DebugAdapterWriter();
-        private static ConsoleController controller = ConsoleController.singleton;
+        private static ConsoleController controller = ConsoleController.singleton;        
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             // Set up timestamps in debug output
             DebugStream = new TimeStampWriter(DebugStream, "HH:mm:ss.fff");
 
-
-            
-            byte[] serialized;
-
-            
-            using (BinaryCollector collector = new BinaryCollector(4))
-            {
-                collector.Push(true);
-                collector.Push(new double[] { 6.0, 123 });
-                collector.Push(new float[] { 512, 1.2f, 1.337f});
-                collector.Push(5);
-                serialized = collector.ToArray();
-            }
-
-            BinaryDistributor bd = new BinaryDistributor(serialized);
-            bool bit = bd.ReadBit();
-            double[] result = bd.ReadDoubleArray();
-            float[] f = bd.ReadFloatArray();
-            int number = bd.ReadInt();
-
-            Padding p = new AbsolutePadding(2, 2, 1, 1);
+            Padding p = new AbsolutePadding(2, 2, 1, 1);    
 
             Console.CursorVisible = false;
             Console.Title = "Tofvesson Enterprises"; // Set console title

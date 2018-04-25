@@ -27,7 +27,7 @@ namespace Client
             RegisterSelectListeners((s, i, v) => controller.CloseView(s), "DuplicateAccountError", "EmptyFieldError", "IPError", "PortError", "AuthError", "PasswordMismatchError");
 
 
-            ((InputView)views.GetNamed("Login")).SubmissionsListener = i =>
+            GetView<InputView>("Login").SubmissionsListener = i =>
             {
                 bool success = true;
 
@@ -43,14 +43,16 @@ namespace Client
                 if (success)
                 {
                     // Authenticate against server here
-                    controller.AddView(views.GetNamed("AuthWait"));
-                    promise = interactor.Authenticate(i.Inputs[0].Text, i.Inputs[1].Text);
+                    Show("AuthWait");
+                    Task<Promise> prom = interactor.Authenticate(i.Inputs[0].Text, i.Inputs[1].Text);
+                    if(!prom.IsCompleted) prom.RunSynchronously();
+                    promise = prom.Result;
                     promise.Subscribe =
                     response =>
                     {
-                        controller.CloseView(views.GetNamed("AuthWait"));
+                        Hide("AuthWait");
                         if (response.Value.Equals("ERROR"))
-                            controller.AddView(views.GetNamed("AuthError"));
+                            Show("AuthError");
                         else
                         {
                             forceDestroy = false;
@@ -58,18 +60,18 @@ namespace Client
                         }
                     };
                 }
-                else controller.AddView(views.GetNamed("EmptyFieldError"));
+                else Show("EmptyFieldError");
             };
 
             // For a smooth effect
-            ((InputView)views.GetNamed("Login")).InputListener = (v, c, i) =>
+            GetView<InputView>("Login").InputListener = (v, c, i) =>
             {
                 c.BackgroundColor = v.DefaultBackgroundColor;
                 c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
                 return true;
             };
 
-            ((InputView)views.GetNamed("Register")).SubmissionsListener = i =>
+            GetView<InputView>("Register").SubmissionsListener = i =>
             {
                 bool success = true, mismatch = false;
 
@@ -88,14 +90,14 @@ namespace Client
                 {
                     void a()
                     {
-                        controller.AddView(views.GetNamed("RegWait"));
-                        promise = interactor.Register(i.Inputs[0].Text, i.Inputs[1].Text);
+                        Show("RegWait");
+                        promise = Promise.AwaitPromise(interactor.Register(i.Inputs[0].Text, i.Inputs[1].Text));
                         promise.Subscribe =
                         response =>
                         {
-                            controller.CloseView(views.GetNamed("RegWait"));
+                            Hide("RegWait");
                             if (response.Value.Equals("ERROR"))
-                                controller.AddView(views.GetNamed("DuplicateAccountError"));
+                                Show("DuplicateAccountError");
                             else
                             {
                                 forceDestroy = false;
@@ -106,18 +108,18 @@ namespace Client
 
                     if (i.Inputs[1].Text.Length < 5 || i.Inputs[1].Text.StartsWith("asdfasdf") || i.Inputs[1].Text.StartsWith("asdf1234"))
                     {
-                        var warning = (DialogView)views.GetNamed("WeakPasswordWarning");
+                        var warning = GetView<DialogView>("WeakPasswordWarning");
                         warning.RegisterSelectListener((wrn, idx, sel) =>
                         {
-                            controller.CloseView(warning);
+                            Hide(warning);
                             if (idx == 0) a();
                         });
-                        controller.AddView(warning);
+                        Show(warning);
                     }
                     else a();
                 }
-                else if (mismatch) controller.AddView(views.GetNamed("PasswordMismatchError"));
-                else controller.AddView(views.GetNamed("EmptyFieldError"));
+                else if (mismatch) Show("PasswordMismatchError");
+                else Show("EmptyFieldError");
             };
 
             ((InputView)views.GetNamed("Register")).InputListener = (v, c, i) =>
@@ -136,13 +138,13 @@ namespace Client
             });
 
             // Add the initial view
-            controller.AddView(views.GetNamed("WelcomeScreen"));
+            Show("WelcomeScreen");
         }
 
         public override void OnDestroy()
         {
-            ((InputView)views.GetNamed("Register")).SelectedField = 0;
-            foreach (var v in ((InputView)views.GetNamed("Register")).Inputs)
+            GetView<InputView>("Register").SelectedField = 0;
+            foreach (var v in GetView<InputView>("Register").Inputs)
             {
                 v.Text = "";
                 v.SelectIndex = 0;
@@ -150,7 +152,7 @@ namespace Client
             }
 
             ((InputView)views.GetNamed("Login")).SelectedField = 0;
-            foreach (var v in ((InputView)views.GetNamed("Login")).Inputs)
+            foreach (var v in GetView<InputView>("Login").Inputs)
             {
                 v.Text = "";
                 v.SelectIndex = 0;
@@ -158,8 +160,7 @@ namespace Client
             }
 
             // Close views
-            foreach (var view in views)
-                controller.CloseView(view.Item2);
+            HideAll();
 
             // Unsubscribe from events
             if (promise != null && !promise.HasValue) promise.Subscribe = null;
@@ -168,7 +169,7 @@ namespace Client
             interactor.UnregisterListener(token);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            if (forceDestroy) interactor.Disconnect();
+            if (forceDestroy) interactor.CancelAll();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
     }

@@ -88,25 +88,27 @@ namespace Client.ConsoleForms
         {
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(metaString);
-            XmlNode lang = doc.GetElementsByTagName("Lang").Item(0);
+            XmlNode lang = doc.GetElementsByTagName("Strings").Item(0);
             List<XmlElement> priorities = new List<XmlElement>();
             foreach(var node in lang.ChildNodes)
                 if (node is XmlElement el)
                 {
-                    if (el.Name.Equals("Default")) priorities.Insert(0, (XmlElement)node);
-                    else if (el.Name.Equals("Fallback"))
+                    //if (el.Name.Equals("Default")) priorities.Insert(0, (XmlElement)node);
+                    /*else*/ if (el.Name.Equals(/*"Fallback"*/"Lang"))
                     {
-                        for (int i = 0; i < priorities.Count; ++i)
-                            if (!priorities[i].Name.Equals("Default") && ComparePriority(el, priorities[i]))
-                            {
-                                priorities.Insert(i, el);
-                                break;
-                            }
-                            else if (i == priorities.Count - 1)
-                            {
-                                priorities.Add(el);
-                                break;
-                            }
+                        if (priorities.Count == 0) priorities.Add(el);
+                        else
+                            for (int i = 0; i < priorities.Count; ++i)
+                                if (/*!priorities[i].Name.Equals("Default") && */ComparePriority(el, priorities[i]))
+                                {
+                                    priorities.Insert(i, el);
+                                    break;
+                                }
+                                else if (i == priorities.Count - 1)
+                                {
+                                    priorities.Add(el);
+                                    break;
+                                }
                     }
                 }
 
@@ -125,7 +127,7 @@ namespace Client.ConsoleForms
                     break;
                 }
 
-            // Use defults and fallbacks
+            // Use defaults and fallbacks
             for (int i = 0; i<priorities.Count; ++i)
             {
                 foreach (var prop in properties)

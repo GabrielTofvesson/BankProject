@@ -63,6 +63,16 @@ namespace Server.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] d_0x100 {
+            get {
+                object obj = ResourceManager.GetObject("d_0x100", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] d_0x200 {
             get {
                 object obj = ResourceManager.GetObject("d_0x200", resourceCulture);
@@ -73,9 +83,29 @@ namespace Server.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] e_0x100 {
+            get {
+                object obj = ResourceManager.GetObject("e_0x100", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] e_0x200 {
             get {
                 object obj = ResourceManager.GetObject("e_0x200", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] n_0x100 {
+            get {
+                object obj = ResourceManager.GetObject("n_0x100", resourceCulture);
                 return ((byte[])(obj));
             }
         }

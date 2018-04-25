@@ -3,6 +3,53 @@
 	<Entry name="NC_head">Serverkonfiguration</Entry>
 	<Entry name="NC_sec">Den valda serverns identitet kunde inte verifieras. Detta innebär att det inte är en officiell server. Fortsätt?</Entry>
 	<Entry name="NC_stall">Kopplar upp mot servern...</Entry>
+	<Entry name="NC_next">Fortsätt</Entry>
+	<Entry name="NC_cancel">Avbryt</Entry>
+	<Entry name="NC_ip">Server IP:</Entry>
+	<Entry name="NC_port">Port:</Entry>
+	<Entry name="NC_iperr">Den givna IP-addressen är inte giltig</Entry>
+	<Entry name="NC_porterr">Den givna porten är inte giltig</Entry>
+	<Entry name="NC_connerr">Kunde inte koppla till servern</Entry>
+	<Entry name="NC_identity">Verifierar serverns identitet...</Entry>
 
-	<Entry name="ERR_empty">Ett eller fler obligatoriska inputfält är tomma!</Entry>
+	<Entry name="SU_welcome">Välkommen till Tofvessons banksystem!
+		För att fortsätta, tryck [ENTER]
+		För att backa, tryck [ESCAPE]</Entry>
+	<Entry name="SU_reg">Registrera konto</Entry>
+	<Entry name="SU_regstall">Registrerar...</Entry>
+	<Entry name="SU_dup">Ett konto med det givna användarnamnet finns redan!</Entry>
+	<Entry name="SU_mismatch">De givna lösenorden matchar inte!</Entry>
+	<Entry name="SU_weak">Det angivna lösenordet ases vara svagt. Är du säker på att du vill fortsätta?</Entry>
+	<Entry name="SU_login">Logga in</Entry>
+	<Entry name="SU_authstall">Autentiserar...</Entry>
+	<Entry name="SU_usrerr">Det givna användarnamnet eller lösenordet var felaktigt</Entry>
+	<Entry name="SU_usr">Användarnamn:</Entry>
+	<Entry name="SU_pwd">Lösenord:</Entry>
+	<Entry name="SU_pwdrep">Upprepa lösenord:</Entry>
+	<Entry name="SU_reg_label">Registrera</Entry>
+	<Entry name="SU_login_label">Logga in</Entry>
+
+	<Entry name="SE_bal">Kontobalans: $1</Entry>
+	<Entry name="SE_hist">Transaktionshistorik</Entry>
+	<Entry name="SE_tx">Överför pengar</Entry>
+	<Entry name="SE_who">Skicka till</Entry>
+	<Entry name="SE_where">Konto</Entry>
+	<Entry name="SE_view">Visa konton</Entry>
+	<Entry name="SE_amount">Värde att överföra</Entry>
+	<Entry name="SE_msg">Inkludera ett meddelande</Entry>
+	<Entry name="SE_pwdu">Uppdatera lösenord</Entry>
+    <Entry name="SE_exit">Logga ut</Entry>
+    <Entry name="SE_open">Öppna ett konto</Entry>
+    <Entry name="SE_close">Stäng ett konto</Entry>
+    <Entry name="SE_accounts">Visa konton</Entry>
+    <Entry name="SE_info">"$0"
+Kontobalans: $1
+Begynnelsedatum: $2</Entry>
+
+	<Entry name="GENERIC_dismiss">Stäng</Entry>
+	<Entry name="GENERIC_accept">Ok</Entry>
+	<Entry name="GENERIC_positive">Ja</Entry>
+	<Entry name="GENERIC_negative">Nej</Entry>
+
+	<Entry name="ERR_empty">Ett eller flera obligatoriska inputfält är tomma!</Entry>
 </Strings>

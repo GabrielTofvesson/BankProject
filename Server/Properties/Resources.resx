@@ -118,11 +118,20 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="d_0x100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\0x100.d;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="d_0x200" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\0x200.d;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="e_0x100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\0x100.e;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="e_0x200" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\0x200.e;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="n_0x100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\0x100.n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="n_0x200" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\0x200.n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

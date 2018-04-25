@@ -34,6 +34,14 @@ namespace Server
             return s.sessionID;
         }
 
+        public Database.User GetUser(string SID)
+        {
+            foreach (var session in sessions)
+                if (session.sessionID.Equals(SID))
+                    return session.user;
+            return null;
+        }
+
         public bool Refresh(Database.User user)
         {
             Update();
@@ -74,16 +82,16 @@ namespace Server
             return false;
         }
 
-        public void Expire(string sid)
+        public bool Expire(string sid)
         {
             Update();
             for (int i = sessions.Count - 1; i >= 0; --i)
                 if (sessions[i].sessionID.Equals(sid))
                 {
                     sessions.RemoveAt(i);
-                    return;
+                    return true;
                 }
-            return;
+            return false;
         }
 
         public bool CheckSession(string sid, Database.User user)
@@ -106,7 +114,7 @@ namespace Server
         {
             string res;
             do res = random.NextString(sidLength);
-            while (res.Equals(invalid));
+            while (res.StartsWith(invalid));
             return res;
         }
     }

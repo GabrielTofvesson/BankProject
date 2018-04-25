@@ -7,60 +7,86 @@ using System.Text;
 using System.Threading.Tasks;
 using Tofvesson.Collections;
 using Client.ConsoleForms.Graphics;
+using Tofvesson.Crypto;
+using Client.Properties;
 
 namespace Client
 {
     public class NetContext : Context
     {
+        private static readonly RandomProvider provider = new RegularRandomProvider();
         public NetContext(ContextManager manager) : base(manager, "Networking", "Common")
         {
             // Just close when anything is selected and "submitted"
             RegisterSelectListeners((s, i, v) => controller.CloseView(s), "EmptyFieldError", "IPError", "PortError", "ConnectionError");
 
-            ((InputView)views.GetNamed("NetConnect")).SubmissionsListener = i =>
+            bool connecting = false;
+
+            GetView<InputView>("NetConnect").SubmissionsListener = i =>
             {
+                if (connecting)
+                {
+                    controller.Popup("Already connecting!", 1000, ConsoleColor.DarkRed);
+                    return;
+                }
                 bool
                     ip = ParseIP(i.Inputs[0].Text) != null,
                     port = short.TryParse(i.Inputs[1].Text, out short prt) && prt > 0;
 
-
                 if (ip && port)
                 {
+                    connecting = true;
                     // Connect to server here
-                    BankNetInteractor ita = new BankNetInteractor(i.Inputs[0].Text, prt, false); // Don't do identity check for now
+                    BankNetInteractor ita = new BankNetInteractor(i.Inputs[0].Text, prt);
+                    /*
                     try
                     {
-                        var t = ita.Connect();
-                        while (!t.IsCompleted)
-                            if (t.IsCanceled || t.IsFaulted)
-                            {
-                                controller.AddView(views.GetNamed("ConnectError"));
-                                return;
-                            }
+                        //var t = ita.Connect();
+                        //while (!t.IsCompleted)
+                        //    if (t.IsCanceled || t.IsFaulted)
+                        //    {
+                        //        Show("ConnectError");
+                        //        return;
+                        //    }
+                        //    else System.Threading.Thread.Sleep(125);
                     }
                     catch
                     {
-                        controller.AddView(views.GetNamed("ConnectionError"));
+                        Show("ConnectionError");
+                        connecting = false;
                         return;
                     }
-                    manager.LoadContext(new WelcomeContext(manager, ita));
+                    */
+                    
+                    Promise verify = Promise.AwaitPromise(ita.CheckIdentity(new RSA(Resources.e_0x100, Resources.n_0x100), provider.NextUShort()));
+                    verify.Subscribe =
+                        p =>
+                        {
+                            void load() => manager.LoadContext(new WelcomeContext(manager, ita));
+
+                            // Add condition check for remote peer verification
+                            if (bool.Parse(p.Value)) controller.Popup("Server identity verified!", 1000, ConsoleColor.Green, load);
+                            else controller.Popup("Remote server identity could not be verified!", 5000, ConsoleColor.Red, load);
+                        };
+                    DialogView identityNotify = GetView<DialogView>("IdentityVerify");
+                    identityNotify.RegisterSelectListener(
+                        (vw, ix, nm) => {
+                            verify.Subscribe = null; // Clear subscription
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                            ita.CancelAll();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                            connecting = false;
+                        });
+                    Show(identityNotify);
                 }
                 else if (i.Inputs[0].Text.Length == 0 || i.Inputs[1].Text.Length == 0) controller.AddView(views.GetNamed("EmptyFieldError"));
-                else if (!ip) controller.AddView(views.GetNamed("IPError"));
-                else controller.AddView(views.GetNamed("PortError"));
+                else if (!ip) Show("IPError");
+                else Show("PortError");
             };
         }
 
-        public override void OnCreate()
-        {
-            controller.AddView(views.GetNamed("NetConnect"));
-        }
-
-        public override void OnDestroy()
-        {
-            foreach (var view in views)
-                controller.CloseView(view.Item2);
-        }
+        public override void OnCreate() => Show("NetConnect");
+        public override void OnDestroy() => HideAll();
 
 
         //int gtrack = 0;
