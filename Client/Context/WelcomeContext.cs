@@ -44,14 +44,13 @@ namespace Client
                 {
                     // Authenticate against server here
                     Show("AuthWait");
-                    Task<Promise> prom = interactor.Authenticate(i.Inputs[0].Text, i.Inputs[1].Text);
-                    if(!prom.IsCompleted) prom.RunSynchronously();
-                    promise = prom.Result;
+                    promise = Promise.AwaitPromise(interactor.Authenticate(i.Inputs[0].Text, i.Inputs[1].Text));
+                    //promise = prom.Result;
                     promise.Subscribe =
                     response =>
                     {
                         Hide("AuthWait");
-                        if (response.Value.Equals("ERROR"))
+                        if (response.Value.StartsWith("ERROR") || response.Value.Equals("False")) // Auth failure or general error
                             Show("AuthError");
                         else
                         {
@@ -122,7 +121,7 @@ namespace Client
                 else Show("EmptyFieldError");
             };
 
-            ((InputView)views.GetNamed("Register")).InputListener = (v, c, i) =>
+            GetView<InputView>("Register").InputListener = (v, c, i) =>
             {
                 c.BackgroundColor = v.DefaultBackgroundColor;
                 c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
@@ -132,10 +131,11 @@ namespace Client
 
         public override void OnCreate()
         {
-            token = interactor.RegisterListener((c, s) =>
-            {
-                if(!s) controller.Popup("The connection to the server was severed! ", 4500, ConsoleColor.DarkRed, () => manager.LoadContext(new NetContext(manager)));
-            });
+            // This was set up back when the connection was persistent
+            //token = interactor.RegisterListener((c, s) =>
+            //{
+            //    if(!s) controller.Popup("The connection to the server was severed! ", 4500, ConsoleColor.DarkRed, () => manager.LoadContext(new NetContext(manager)));
+            //});
 
             // Add the initial view
             Show("WelcomeScreen");

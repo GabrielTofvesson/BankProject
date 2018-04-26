@@ -262,7 +262,8 @@ namespace Client
         }
         public static Promise AwaitPromise(Task<Promise> p)
         {
-            if (!p.IsCompleted) p.RunSynchronously();
+            //if (!p.IsCompleted) p.RunSynchronously();
+            p.Wait();
             return p.Result;
         }
     }

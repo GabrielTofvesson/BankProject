@@ -17,10 +17,6 @@ namespace Server
         private const string VERBOSE_RESPONSE = "@string/REMOTE_";
         public static void Main(string[] args)
         {
-            // Set up fancy output
-            Console.SetError(new TimeStampWriter(Console.Error, "HH:mm:ss.fff"));
-            Console.SetOut(new TimeStampWriter(Console.Out, "HH:mm:ss.fff"));
-
             // Create a client session manager and allow sessions to remain valid for up to 5 minutes of inactivity (300 seconds)
             SessionManager manager = new SessionManager(300 * TimeSpan.TicksPerSecond, 20);
 
@@ -180,7 +176,7 @@ namespace Server
                                     return GenerateResponse(id, "ERROR");
                                 }
                                 user.accounts.Add(new Database.Account(user, 0, name));
-                                db.AddUser(user); // Notify database of the update
+                                db.UpdateUser(user); // Notify database of the update
                                 return GenerateResponse(id, true);
                             }
                         case "Account_Transaction_Create":
@@ -302,12 +298,88 @@ namespace Server
                 (c, b) => // Called every time a client connects or disconnects (conn + dc with every command/request)
                 {
                     // Output.Info($"Client has {(b ? "C" : "Disc")}onnected");
-                    if(!b && c.assignedValues.ContainsKey("session"))
-                        manager.Expire(c.assignedValues["session"]);
+                    //if(!b && c.assignedValues.ContainsKey("session"))
+                    //    manager.Expire(c.assignedValues["session"]);
                 });
             server.StartListening();
-            
-            Console.ReadLine();
+
+
+            string commands =
+                new OutputFormatter(4, "  ", "", "- ")
+                .Append("help", "Show this help menu")
+                .Append("stop", "Stop server")
+                .Append("sessions", "Show active client sessions")
+                .Append("list {admin}", "Show registered users. Add \"admin\" to only list admins")
+                .Append("admin [user] {true/false}", "Show or set admin status for a user")
+                .GetString();
+
+            Output.OnNewLine = () => Output.WriteOverwritable(">> ");
+            Output.OnNewLine();
+            // Server command loop
+            while (true)
+            {
+                string cmd = Output.ReadLine();
+                string[] parts = cmd.Split();
+
+                if (cmd.EqualsIgnoreCase("stop")) break;
+                else if (cmd.EqualsIgnoreCase("sessions"))
+                {
+                    StringBuilder builder = new StringBuilder();
+                    manager.Update(); // Ensure that we don't show expired sessions (artifacts exist until it is necessary to remove them)
+                    foreach (var session in manager.Sessions)
+                        builder.Append(session.user.Name).Append(" : ").Append(session.sessionID).Append('\n');
+                    if (builder.Length == 0) builder.Append("There are no active sessions at the moment");
+                    else builder.Length = builder.Length - 1;
+                    Output.Raw(builder);
+                }
+                else if (parts[0].EqualsIgnoreCase("admin"))
+                {
+                    if (parts.Length == 1) Output.Raw("Usage: admin [username] {true/false}");
+                    else if (parts.Length == 2)
+                    {
+                        Database.User user = db.GetUser(parts[1]);
+                        if (user == null) Output.RawErr($"User \"{parts[1]}\" could not be found in the databse!");
+                        else Output.Raw(user.IsAdministrator);
+                    }
+                    else if (parts.Length == 3)
+                    {
+                        Database.User user = db.GetUser(parts[1]);
+                        if (user == null) Output.RawErr($"User \"{parts[1]}\" could not be found in the databse!");
+                        else if (!bool.TryParse(parts[2].ToLower(), out bool admin)) Output.RawErr($"Could not interpret \"{parts[2]}\"");
+                        else
+                        {
+                            if (user.IsAdministrator == admin) Output.Info("The given administrator state was already set");
+                            else if (admin) Output.Raw("User is now an administrator");
+                            else Output.Raw("User is no longer an administrator");
+                            user.IsAdministrator = admin;
+                            db.AddUser(user);
+                        }
+                    }
+                    else Output.RawErr("Too many parameters!");
+                }
+                else if (parts[0].EqualsIgnoreCase("list"))
+                {
+                    if (parts.Length > 2) Output.RawErr("Too many parameters!");
+                    else
+                    {
+                        bool filter = parts.Length > 1, filterAdmin = filter && parts[1].EqualsIgnoreCase("admin");
+
+                        StringBuilder builder = new StringBuilder();
+                        foreach (var user in db.Users(u => !filter || (filterAdmin && u.IsAdministrator)))
+                            builder.Append(user.Name).Append('\n');
+                        if (builder.Length != 0)
+                        {
+                            builder.Length = builder.Length - 1;
+                            Output.Raw(builder);
+                        }
+                    }
+                }
+                else if (cmd.EqualsIgnoreCase("help"))
+                {
+                    Output.Raw("Available commands:\n" + commands);
+                }
+                else if (cmd.Length != 0) Output.RawErr("Unknown command. Use command \"help\" to view available commands");
+            }
 
             server.StopRunning();
         }

@@ -50,7 +50,6 @@ namespace Server
         public void AddUser(User entry) => AddUser(entry, true);
         private void AddUser(User entry, bool withFlush)
         {
-            entry = ToEncoded(entry);
             for (int i = 0; i < loadedUsers.Count; ++i)
                 if (entry.Equals(loadedUsers[i]))
                     loadedUsers[i] = entry;
@@ -117,7 +116,7 @@ namespace Server
                                 wroteNode = false;
                                 if (reader.Name.Equals("User"))
                                 {
-                                    User u = User.Parse(ReadEntry(reader), this);
+                                    User u = FromEncoded(User.Parse(ReadEntry(reader), this));
                                     if (u != null)
                                     {
                                         bool shouldWrite = true;
@@ -176,6 +175,7 @@ namespace Server
 
         private static void WriteUser(XmlWriter writer, User u)
         {
+            u = ToEncoded(u);
             writer.WriteStartElement("User");
             if (u.IsAdministrator) writer.WriteAttributeString("admin", "", "true");
             writer.WriteElementString("Name", u.Name);
@@ -238,16 +238,15 @@ namespace Server
         public User FirstUser(Predicate<User> p)
         {
             if (p == null) return null; // Done to conveniently handle system insertions
-            User u;
             foreach (var entry in loadedUsers)
-                if (p(u=FromEncoded(entry)))
-                    return u;
+                if (p(entry))
+                    return entry;
 
             foreach (var entry in changeList)
-                if (p(u=FromEncoded(entry)))
+                if (p(entry))
                 {
-                    if (!loadedUsers.Contains(entry)) loadedUsers.Add(u);
-                    return u;
+                    if (!loadedUsers.Contains(entry)) loadedUsers.Add(entry);
+                    return entry;
                 }
 
             using (var reader = XmlReader.Create(DatabaseName))
@@ -257,8 +256,8 @@ namespace Server
                 {
                     if (reader.Name.Equals("User"))
                     {
-                        User n = User.Parse(ReadEntry(reader), this);
-                        if (n != null && p(FromEncoded(n)))
+                        User n = FromEncoded(User.Parse(ReadEntry(reader), this));
+                        if (n != null && p(n))
                         {
                             if (!loadedUsers.Contains(n)) loadedUsers.Add(n);
                             return n;
@@ -288,12 +287,12 @@ namespace Server
             Transaction tx = new Transaction(from == null ? "System" : from.Name, to.Name, amount, message, fromAccount, toAccount);
             toAcc.History.Add(tx);
             toAcc.balance += amount;
-            AddUser(to);
+            AddUser(to, false);
             if (from != null)
             {
                 fromAcc.History.Add(tx);
                 fromAcc.balance -= amount;
-                AddUser(from);
+                AddUser(from, false);
             }
             return true;
         }
@@ -301,20 +300,23 @@ namespace Server
         public User[] Users(Predicate<User> p)
         {
             List<User> l = new List<User>();
-            User u;
             foreach (var entry in changeList)
-                if (p(u=FromEncoded(entry)))
+                if (p(entry))
+                    l.Add(entry);
+
+            foreach(var entry in loadedUsers)
+                if (!l.Contains(entry) && p(entry))
                     l.Add(entry);
 
             using (var reader = XmlReader.Create(DatabaseName))
             {
                 if (!Traverse(reader, MasterEntry)) return null;
-
-                while (SkipSpaces(reader) && reader.NodeType != XmlNodeType.EndElement)
+                
+                while (((reader.NodeType==XmlNodeType.Element && reader.Name.Equals("User")) || SkipSpaces(reader)) && reader.NodeType != XmlNodeType.EndElement)
                 {
                     if (reader.NodeType == XmlNodeType.EndElement) break;
                     User e = User.Parse(ReadEntry(reader), this);
-                    if (e!=null && p(e=FromEncoded(e))) l.Add(e);
+                    if (e!=null && !l.Contains(e = FromEncoded(e)) && p(e)) l.Add(e);
                 }
             }
             return l.ToArray();

@@ -168,7 +168,19 @@ namespace Common
                 if (read > 0) lastComm = DateTime.Now.Ticks;
             }
             if (mLen == 0 && BinaryHelpers.TryReadVarInt(ibuf, 0, out mLen))
+            {
                 ibuf.Dequeue(BinaryHelpers.VarIntSize(mLen));
+                if(mLen > 65535) // Problematic message size. Just drop connection
+                {
+                    Running = false;
+                    try
+                    {
+                        Connection.Close();
+                    }
+                    catch { }
+                    return true;
+                }
+            }
             if (mLen != 0 && ibuf.Count >= mLen)
             {
                 // Got a full message. Parse!
@@ -179,7 +191,20 @@ namespace Common
                 {
                     if (!ServerSide) Connection.Send(NetSupport.WithHeader(exchange.GetPublicKey()));
                     if (message.Length == 0) return false;
-                    Crypto = new Rijndael128(exchange.GetSharedSecret(message).ToHexString());
+                    try
+                    {
+                        Crypto = new Rijndael128(exchange.GetSharedSecret(message).ToHexString());
+                    }
+                    catch
+                    {
+                        Running = false;
+                        try
+                        {
+                            Connection.Close();
+                        }
+                        catch { }
+                        return true;
+                    }
                     CBC = new PCBC(Crypto, rp);
                     cryptoEstablished = true;
                     onConn(this, true);
@@ -187,7 +212,21 @@ namespace Common
                 else
                 {
                     // Decrypt the incoming message
-                    byte[] read = Crypto.Decrypt(message);
+                    byte[] read;
+                    try
+                    {
+                        read = Crypto.Decrypt(message);
+                    }
+                    catch // Presumably, something weird happened that wasn't expected. Just drop it...
+                    {
+                        Running = false;
+                        try
+                        {
+                            Connection.Close();
+                        }
+                        catch { }
+                        return true;
+                    }
 
                     // Read the decrypted message length
                     int mlenInner = (int) BinaryHelpers.ReadVarInt(read, 0);

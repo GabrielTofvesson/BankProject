@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Tofvesson.Common;
 using Tofvesson.Crypto;
 
 namespace Common.Cryptography.KeyExchange
@@ -51,30 +52,25 @@ namespace Common.Cryptography.KeyExchange
 
         public byte[] GetPublicKey()
         {
-            byte[] p1 = pub.X.ToByteArray();
-            byte[] p2 = pub.Y.ToByteArray();
-
-            byte[] ser = new byte[4 + p1.Length + p2.Length];
-            ser[0] = (byte)(p1.Length & 255);
-            ser[1] = (byte)((p1.Length >> 8) & 255);
-            ser[2] = (byte)((p1.Length >> 16) & 255);
-            ser[3] = (byte)((p1.Length >> 24) & 255);
-            Array.Copy(p1, 0, ser, 4, p1.Length);
-            Array.Copy(p2, 0, ser, 4 + p1.Length, p2.Length);
-
-            return ser;
+            using (BitWriter writer = new BitWriter())
+            {
+                writer.WriteByteArray(pub.X.ToByteArray());
+                writer.WriteByteArray(pub.Y.ToByteArray(), true);
+                return writer.Finalize();
+            }
         }
 
         public byte[] GetPrivateKey() => priv.ToByteArray();
 
         public byte[] GetSharedSecret(byte[] pK)
         {
-            byte[] p1 = new byte[pK[0] | (pK[1] << 8) | (pK[2] << 16) | (pK[3] << 24)]; // Reconstruct x-axis size
-            byte[] p2 = new byte[pK.Length - p1.Length - 4];
-            Array.Copy(pK, 4, p1, 0, p1.Length);
-            Array.Copy(pK, 4 + p1.Length, p2, 0, p2.Length);
+            BitReader reader = new BitReader(pK);
 
-            Point remotePublic = new Point(new BigInteger(p1), new BigInteger(p2));
+            byte[] x = reader.ReadByteArray();
+            Point remotePublic = new Point(
+                new BigInteger(x),
+                new BigInteger(reader.ReadByteArray(pK.Length - BinaryHelpers.VarIntSize(x.Length) - x.Length))
+                );
 
             return curve.Multiply(remotePublic, priv).X.ToByteArray(); // Use the x-coordinate as the shared secret
         }

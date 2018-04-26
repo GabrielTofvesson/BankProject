@@ -11,6 +11,8 @@ namespace Server
         private readonly long timeout;
         private readonly int sidLength;
 
+        public List<Session> Sessions { get => sessions; }
+
         public SessionManager(long timeout, int sidLength = 10)
         {
             this.timeout = timeout;

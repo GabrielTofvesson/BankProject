@@ -31,15 +31,15 @@ namespace Tofvesson.Crypto
             //for (int i = 0; i <4; ++i) msg[msg.Length - 5 - i] = (byte)(((message.Length*8) >> (i * 8)) & 255);
 
             int chunks = msg.Length / 64;
-
-            // Split block into words (allocated out here to prevent massive garbage buildup)
-            uint[] w = new uint[80];
-
+            
             // Perform hashing for each 512-bit block
             for (int i = 0; i<chunks; ++i)
             {
+                // Split block into words (allocated out here to prevent massive garbage buildup)
+                uint[] w = new uint[80];
+
                 // Compute initial source data from padded message
-                for(int j = 0; j<16; ++j)
+                for (int j = 0; j<16; ++j)
                     w[j] |= (uint) ((msg[i * 64 + j * 4] << 24) | (msg[i * 64 + j * 4 + 1] << 16) | (msg[i * 64 + j * 4 + 2] << 8) | (msg[i * 64 + j * 4 + 3] << 0));
 
                 // Expand words
@@ -81,6 +81,7 @@ namespace Tofvesson.Crypto
             public uint i0, i1, i2, i3, i4;
             public byte Get(int idx) => (byte)((idx < 4 ? i0 : idx < 8 ? i1 : idx < 12 ? i2 : idx < 16 ? i3 : i4)>>(8*(idx%4)));
         }
+        private static readonly uint[] block = new uint[80];
         public static SHA1Result SHA1_Opt(byte[] message)
         {
             SHA1Result result = new SHA1Result
@@ -114,17 +115,25 @@ namespace Tofvesson.Crypto
             int chunks = max / 64;
 
             // Replaces the recurring allocation of 80 uints
-            uint ComputeIndex(int block, int idx)
+            /*uint ComputeIndex(int block, int idx)
             {
                 if (idx < 16)
                     return (uint)((GetMsg(block * 64 + idx * 4) << 24) | (GetMsg(block * 64 + idx * 4 + 1) << 16) | (GetMsg(block * 64 + idx * 4 + 2) << 8) | (GetMsg(block * 64 + idx * 4 + 3) << 0));
                 else
                     return Rot(ComputeIndex(block, idx - 3) ^ ComputeIndex(block, idx - 8) ^ ComputeIndex(block, idx - 14) ^ ComputeIndex(block, idx - 16), 1);
-            }
+            }*/
 
             // Perform hashing for each 512-bit block
             for (int i = 0; i < chunks; ++i)
             {
+
+                // Compute initial source data from padded message
+                for (int j = 0; j < 16; ++j)
+                    block[j] = (uint)((GetMsg(i * 64 + j * 4) << 24) | (GetMsg(i * 64 + j * 4 + 1) << 16) | (GetMsg(i * 64 + j * 4 + 2) << 8) | (GetMsg(i * 64 + j * 4 + 3) << 0));
+
+                // Expand words
+                for (int j = 16; j < 80; ++j)
+                    block[j] = Rot(block[j - 3] ^ block[j - 8] ^ block[j - 14] ^ block[j - 16], 1);
 
                 // Initialize chunk-hash
                 uint
@@ -137,7 +146,7 @@ namespace Tofvesson.Crypto
                 // Do hash rounds
                 for (int t = 0; t < 80; ++t)
                 {
-                    uint tmp = Rot(a, 5) + func(t, b, c, d) + e + K(t) + ComputeIndex(i, t);
+                    uint tmp = Rot(a, 5) + func(t, b, c, d) + e + K(t) + block[i];
                     e = d;
                     d = c;
                     c = Rot(b, 30);

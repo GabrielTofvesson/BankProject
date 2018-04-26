@@ -397,6 +397,7 @@ namespace Tofvesson.Crypto
             return array;
         }
 
+        public static bool EqualsIgnoreCase(this string s, string s1) => s.ToLower().Equals(s1.ToLower());
         public static string ToUTF8String(this byte[] b) => new string(Encoding.UTF8.GetChars(b));
         public static byte[] ToUTF8Bytes(this string s) => Encoding.UTF8.GetBytes(s);
 
