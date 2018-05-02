@@ -57,8 +57,17 @@ namespace Client
                         return;
                     }
                     */
-                    
-                    Promise verify = Promise.AwaitPromise(ita.CheckIdentity(new RSA(Resources.e_0x100, Resources.n_0x100), provider.NextUShort()));
+
+                    Promise verify;
+                    try
+                    {
+                        verify = Promise.AwaitPromise(ita.CheckIdentity(new RSA(Resources.e_0x100, Resources.n_0x100), provider.NextUShort()));
+                    }
+                    catch
+                    {
+                        Show("ConnectionError"); 
+                        return;
+                    }
                     verify.Subscribe =
                         p =>
                         {

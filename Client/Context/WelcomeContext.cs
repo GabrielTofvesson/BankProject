@@ -44,7 +44,16 @@ namespace Client
                 {
                     // Authenticate against server here
                     Show("AuthWait");
-                    promise = Promise.AwaitPromise(interactor.Authenticate(i.Inputs[0].Text, i.Inputs[1].Text));
+                    try
+                    {
+                        promise = Promise.AwaitPromise(interactor.Authenticate(i.Inputs[0].Text, i.Inputs[1].Text));
+                    }
+                    catch
+                    {
+                        Hide("AuthWait");
+                        Show("ConnectionError");
+                        return;
+                    }
                     //promise = prom.Result;
                     promise.Subscribe =
                     response =>
@@ -90,12 +99,21 @@ namespace Client
                     void a()
                     {
                         Show("RegWait");
-                        promise = Promise.AwaitPromise(interactor.Register(i.Inputs[0].Text, i.Inputs[1].Text));
+                        try
+                        {
+                            promise = Promise.AwaitPromise(interactor.Register(i.Inputs[0].Text, i.Inputs[1].Text));
+                        }
+                        catch
+                        {
+                            Hide("RegWait");
+                            Show("ConnectionError");
+                            return;
+                        }
                         promise.Subscribe =
                         response =>
                         {
                             Hide("RegWait");
-                            if (response.Value.Equals("ERROR"))
+                            if (response.Value.StartsWith("ERROR"))
                                 Show("DuplicateAccountError");
                             else
                             {

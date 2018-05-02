@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    public sealed class OutputFormatter
+    public sealed class CommandHandler
     {
-        private readonly List<Tuple<string, string>> lines = new List<Tuple<string, string>>();
+        private readonly List<Tuple<Command, string>> commands = new List<Tuple<Command, string>>();
         private int leftLen = 0;
         private readonly int minPad;
         private readonly string prepend, delimiter, postpad, trail;
 
 
-        public OutputFormatter(int minPad = 1, string prepend = "", string delimiter = "", string postpad = "", string trail = "")
+        public CommandHandler(int minPad = 1, string prepend = "", string delimiter = "", string postpad = "", string trail = "")
         {
             this.prepend = prepend;
             this.delimiter = delimiter;
@@ -23,27 +23,36 @@ namespace Server
             this.minPad = Math.Abs(minPad);
         }
 
-        public OutputFormatter Append(string key, string value)
+        public CommandHandler Append(Command c, string description)
         {
-            lines.Add(new Tuple<string, string>(key, value));
-            leftLen = Math.Max(key.Length + minPad, leftLen);
+            commands.Add(new Tuple<Command, string>(c, description));
+            leftLen = Math.Max(c.CommandString.Length + minPad, leftLen);
             return this;
+        }
+
+        public bool HandleCommand(string cmd)
+        {
+            foreach (var command in commands)
+                if (command.Item1.Invoke(cmd))
+                    return true;
+            return false;
         }
 
         public string GetString()
         {
             StringBuilder builder = new StringBuilder();
-            foreach (var line in lines)
+            string cache;
+            foreach (var command in commands)
                 builder
                     .Append(prepend)
-                    .Append(line.Item1)
+                    .Append(cache = command.Item1.CommandString)
                     .Append(delimiter)
-                    .Append(Pad(line.Item1, leftLen))
+                    .Append(Pad(cache, leftLen))
                     .Append(postpad)
-                    .Append(line.Item2)
+                    .Append(command.Item2)
                     .Append(trail)
                     .Append('\n');
-            builder.Length -= 1;
+            if(commands.Count > 0) builder.Length -= 1;
             return builder.ToString();
         }
 

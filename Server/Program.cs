@@ -104,6 +104,7 @@ namespace Server
             }
 
             string GenerateResponse(long id, dynamic d) => id + ":" + d.ToString();
+            string ErrorResponse(long id, string i18n = null) => GenerateResponse(id, $"ERROR{(i18n==null?"":":"+VERBOSE_RESPONSE)}{i18n??""}");
 
             bool GetUser(string sid, out Database.User user)
             {
@@ -133,13 +134,13 @@ namespace Server
                                 if(!ParseDataPair(cmd[1], out string user, out string pass))
                                 {
                                     Output.Error($"Recieved problematic username or password! (User: \"{user}\")");
-                                    return GenerateResponse(id, "ERROR");
+                                    return ErrorResponse(id);
                                 }
                                 Database.User usr = db.GetUser(user);
                                 if (usr == null || !usr.Authenticate(pass))
                                 {
                                     Output.Error("Authentcation failure for user: "+user);
-                                    return GenerateResponse(id, "ERROR");
+                                    return ErrorResponse(id);
                                 }
 
                                 string sess = manager.GetSession(usr, "ERROR");
@@ -173,7 +174,7 @@ namespace Server
                                 {
                                     // Don't print input data to output in case sensitive information was included
                                     Output.Error($"Recieved problematic session id or account name!");
-                                    return GenerateResponse(id, "ERROR");
+                                    return ErrorResponse(id);
                                 }
                                 user.accounts.Add(new Database.Account(user, 0, name));
                                 db.UpdateUser(user); // Notify database of the update
@@ -215,7 +216,7 @@ namespace Server
                                 {
                                     // Don't print input data to output in case sensitive information was included
                                     Output.Error($"Recieved problematic transaction data ({error}): {data?.ToList().ToString() ?? "Data could not be parsed"}");
-                                    return GenerateResponse(id, $"ERROR:{error}");
+                                    return ErrorResponse(id, error);
                                 }
                                 // At this point, we know that all parsed variables above were successfully parsed and valid, therefore: no NREs
                                 // Parsed vars: 'user', 'account', 'tUser', 'tAccount', 'amount'
@@ -243,7 +244,7 @@ namespace Server
                                     Output.Error($"Recieved problematic session id or account name!");
 
                                     // Possible errors: bad session id, bad account name, balance in account isn't 0
-                                    return GenerateResponse(id, $"ERROR:{VERBOSE_RESPONSE} {(user==null? "badsession" : account==null? "badacc" : "hasbal")}");
+                                    return ErrorResponse(id, (user==null? "badsession" : account==null? "badacc" : "hasbal"));
                                 }
                                 break;
                             }
@@ -253,11 +254,11 @@ namespace Server
                                 {
                                     // Don't print input data to output in case sensitive information was included
                                     Output.Error($"Recieved problematic username or password!");
-                                    return GenerateResponse(id, $"ERROR:{VERBOSE_RESPONSE}userpass");
+                                    return ErrorResponse(id, "userpass");
                                 }
 
                                 // Cannot register an account with an existing username
-                                if (db.ContainsUser(user)) return GenerateResponse(id, $"ERROR:{VERBOSE_RESPONSE}exists");
+                                if (db.ContainsUser(user)) return ErrorResponse(id, "exists");
 
                                 // Create the database user entry and generate a personal password salt
                                 Database.User u = new Database.User(user, pass, random.GetBytes(Math.Abs(random.NextShort() % 60) + 20), true);
@@ -286,11 +287,11 @@ namespace Server
                                 }
                                 catch
                                 {
-                                    return GenerateResponse(id, $"ERROR:{VERBOSE_RESPONSE}crypterr");
+                                    return ErrorResponse(id, "crypterr");
                                 }
                             }
                         default:
-                            return GenerateResponse(id, $"ERROR:{VERBOSE_RESPONSE}unwn"); // Unknown request
+                            return ErrorResponse(id, "unwn"); // Unknown request
                     }
 
                     return null;
@@ -304,81 +305,71 @@ namespace Server
             server.StartListening();
 
 
-            string commands =
-                new OutputFormatter(4, "  ", "", "- ")
-                .Append("help", "Show this help menu")
-                .Append("stop", "Stop server")
-                .Append("sessions", "Show active client sessions")
-                .Append("list {admin}", "Show registered users. Add \"admin\" to only list admins")
-                .Append("admin [user] {true/false}", "Show or set admin status for a user")
-                .GetString();
+            bool running = true;
 
-            Output.OnNewLine = () => Output.WriteOverwritable(">> ");
-            Output.OnNewLine();
-            // Server command loop
-            while (true)
-            {
-                string cmd = Output.ReadLine();
-                string[] parts = cmd.Split();
-
-                if (cmd.EqualsIgnoreCase("stop")) break;
-                else if (cmd.EqualsIgnoreCase("sessions"))
-                {
-                    StringBuilder builder = new StringBuilder();
-                    manager.Update(); // Ensure that we don't show expired sessions (artifacts exist until it is necessary to remove them)
-                    foreach (var session in manager.Sessions)
-                        builder.Append(session.user.Name).Append(" : ").Append(session.sessionID).Append('\n');
-                    if (builder.Length == 0) builder.Append("There are no active sessions at the moment");
-                    else builder.Length = builder.Length - 1;
-                    Output.Raw(builder);
-                }
-                else if (parts[0].EqualsIgnoreCase("admin"))
-                {
-                    if (parts.Length == 1) Output.Raw("Usage: admin [username] {true/false}");
-                    else if (parts.Length == 2)
-                    {
-                        Database.User user = db.GetUser(parts[1]);
-                        if (user == null) Output.RawErr($"User \"{parts[1]}\" could not be found in the databse!");
-                        else Output.Raw(user.IsAdministrator);
-                    }
-                    else if (parts.Length == 3)
-                    {
-                        Database.User user = db.GetUser(parts[1]);
-                        if (user == null) Output.RawErr($"User \"{parts[1]}\" could not be found in the databse!");
-                        else if (!bool.TryParse(parts[2].ToLower(), out bool admin)) Output.RawErr($"Could not interpret \"{parts[2]}\"");
-                        else
-                        {
-                            if (user.IsAdministrator == admin) Output.Info("The given administrator state was already set");
-                            else if (admin) Output.Raw("User is now an administrator");
-                            else Output.Raw("User is no longer an administrator");
-                            user.IsAdministrator = admin;
-                            db.AddUser(user);
-                        }
-                    }
-                    else Output.RawErr("Too many parameters!");
-                }
-                else if (parts[0].EqualsIgnoreCase("list"))
-                {
-                    if (parts.Length > 2) Output.RawErr("Too many parameters!");
-                    else
-                    {
-                        bool filter = parts.Length > 1, filterAdmin = filter && parts[1].EqualsIgnoreCase("admin");
-
+            // Create the command manager
+            CommandHandler commands = null;
+            commands =
+                new CommandHandler(4, "  ", "", "- ")
+                .Append(new Command("help").SetAction(() => Output.Raw("Available commands:\n" + commands.GetString())), "Show this help menu")
+                .Append(new Command("stop").SetAction(() => running = false), "Stop server")
+                .Append(new Command("sess").SetAction(
+                    (c, l) => {
                         StringBuilder builder = new StringBuilder();
-                        foreach (var user in db.Users(u => !filter || (filterAdmin && u.IsAdministrator)))
+                        manager.Update(); // Ensure that we don't show expired sessions (artifacts exist until it is necessary to remove them)
+                        foreach (var session in manager.Sessions)
+                            builder.Append(session.user.Name).Append(" : ").Append(session.sessionID).Append('\n');
+                        if (builder.Length == 0) builder.Append("There are no active sessions at the moment");
+                        else builder.Length = builder.Length - 1;
+                        Output.Raw(builder);
+                    }), "Show active client sessions")
+                .Append(new Command("list").WithParameter(Parameter.Flag('a')).SetAction(
+                    (c, l) => {
+                        bool filter = l.HasFlag('a');
+                        StringBuilder builder = new StringBuilder();
+                        foreach (var user in db.Users(u => !filter || (filter && u.IsAdministrator)))
                             builder.Append(user.Name).Append('\n');
                         if (builder.Length != 0)
                         {
                             builder.Length = builder.Length - 1;
                             Output.Raw(builder);
                         }
-                    }
-                }
-                else if (cmd.EqualsIgnoreCase("help"))
-                {
-                    Output.Raw("Available commands:\n" + commands);
-                }
-                else if (cmd.Length != 0) Output.RawErr("Unknown command. Use command \"help\" to view available commands");
+                    }), "Show registered users. Add \"-a\" to only list admins")
+                .Append(new Command("admin")
+                    .WithParameter("username", 'u', Parameter.ParamType.STRING) // Guaranteed to appear in the list passed in the action
+                    .WithParameter("true/false", 's', Parameter.ParamType.BOOLEAN, true) // Might show up
+                    .SetAction(
+                        (c, l) =>
+                        {
+                            bool set = l.HasFlag('s');
+                            string username = l.GetFlag('u');
+                            Database.User user = db.GetUser(username);
+                            if (user == null) {
+                                Output.RawErr($"User \"{username}\" could not be found in the databse!");
+                                return;
+                            }
+                            if (set)
+                            {
+                                bool admin = bool.Parse(l.GetFlag('s'));
+                                if (user.IsAdministrator == admin) Output.Info("The given administrator state was already set");
+                                else if (admin) Output.Raw("User is now an administrator");
+                                else Output.Raw("User is no longer an administrator");
+                                user.IsAdministrator = admin;
+                                db.AddUser(user);
+                            }
+                            else Output.Raw(user.IsAdministrator);
+                        }), "Show or set admin status for a user");
+
+            // Set up a persistent terminal-esque input design
+            Output.OnNewLine = () => Output.WriteOverwritable(">> ");
+            Output.OnNewLine();
+
+            // Server command loop
+            while (running)
+            {
+                // Handle command input
+                if (!commands.HandleCommand(Output.ReadLine()))
+                    Output.Error("Unknown command. Enter 'help' for a list of supported commands.", true, false);
             }
 
             server.StopRunning();
