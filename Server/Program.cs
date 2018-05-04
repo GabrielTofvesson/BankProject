@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Tofvesson.Common;
@@ -22,6 +23,10 @@ namespace Server
 
             // Initialize the database
             Database db = new Database("BankDB", "Resources");
+            SetConsoleCtrlHandler(i => {
+                if (i == 2) db.Flush(); // Ensures that the database is flushed before the program exits
+                return false;
+            }, true);
 
             // Create a secure random provider and start getting RSA stuff
             CryptoRandomProvider random = new CryptoRandomProvider();
@@ -246,7 +251,45 @@ namespace Server
                                     // Possible errors: bad session id, bad account name, balance in account isn't 0
                                     return ErrorResponse(id, (user==null? "badsession" : account==null? "badacc" : "hasbal"));
                                 }
+                                user.accounts.Remove(account);
+                                db.UpdateUser(user); // Update user info
                                 break;
+                            }
+
+                        case "Account_Get":
+                            {
+                                Database.User user = null;
+                                Database.Account account = null;
+                                if (!ParseDataPair(cmd[1], out string session, out string name) || // Get session id and account name
+                                    !GetUser(session, out user) || // Get user associated with session id
+                                    !GetAccount(name, user, out account) ||
+                                    account.balance != 0)
+                                {
+                                    // Don't print input data to output in case sensitive information was included
+                                    Output.Error($"Recieved problematic session id or account name!");
+
+                                    // Possible errors: bad session id, bad account name, balance in account isn't 0
+                                    return ErrorResponse(id, (user == null ? "badsession" : account == null ? "badacc" : "hasbal"));
+                                }
+                                // Response example: "123.45{Sm9obiBEb2U=&Sm9obnMgQWNjb3VudA==&SmFuZSBEb2U=&SmFuZXMgQWNjb3VudA==&123.45&SGV5IHRoZXJlIQ==}"
+                                // Exmaple data: balance=123.45, Transaction{to="John Doe", toAccount="Johns Account", from="Jane Doe", fromAccount="Janes Account", amount=123.45, meta="Hey there!"}
+                                return GenerateResponse(id, account.ToString());
+                            }
+                        case "Account_List":
+                            {
+                                // Get user
+                                Database.User user = db.GetUser(cmd[1]);
+                                if (user == null) return ErrorResponse(id, "baduser");
+
+                                // Serialize account names
+                                StringBuilder builder = new StringBuilder();
+
+                                // Account names are serialized as base64 to prevent potential &'s in the names from causing unintended behaviour
+                                foreach (var account in user.accounts) builder.Append(account.name.ToBase64String()).Append('&');
+                                if (builder.Length != 0) --builder.Length;
+
+                                // Return accounts
+                                return GenerateResponse(id, builder);
                             }
                         case "Reg":
                             {
@@ -374,5 +417,10 @@ namespace Server
 
             server.StopRunning();
         }
+
+        // Handles unexpected console close events
+        private delegate bool EventHandler(int eventType);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool SetConsoleCtrlHandler(EventHandler callback, bool add);
     }
 }

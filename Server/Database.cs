@@ -252,7 +252,7 @@ namespace Server
             using (var reader = XmlReader.Create(DatabaseName))
             {
                 if (!Traverse(reader, MasterEntry)) return null;
-                while (reader.Read() && reader.NodeType != XmlNodeType.EndElement)
+                while ((reader.Name.Equals("User") && reader.NodeType != XmlNodeType.EndElement) || (reader.Read() && reader.NodeType != XmlNodeType.EndElement))
                 {
                     if (reader.Name.Equals("User"))
                     {
@@ -308,6 +308,7 @@ namespace Server
                 if (!l.Contains(entry) && p(entry))
                     l.Add(entry);
 
+            /*
             using (var reader = XmlReader.Create(DatabaseName))
             {
                 if (!Traverse(reader, MasterEntry)) return null;
@@ -319,6 +320,24 @@ namespace Server
                     if (e!=null && !l.Contains(e = FromEncoded(e)) && p(e)) l.Add(e);
                 }
             }
+            */
+
+            using (var reader = XmlReader.Create(DatabaseName))
+            {
+                if (!Traverse(reader, MasterEntry)) return null;
+                while ((reader.Name.Equals("User") && reader.NodeType != XmlNodeType.EndElement) || (reader.Read() && reader.NodeType != XmlNodeType.EndElement))
+                {
+                    if (reader.Name.Equals("User"))
+                    {
+                        User n = FromEncoded(User.Parse(ReadEntry(reader), this));
+                        if (n != null && p(n))
+                        {
+                            if (!l.Contains(n)) l.Add(n);
+                        }
+                    }
+                }
+            }
+
             return l.ToArray();
         }
 
@@ -362,6 +381,7 @@ namespace Server
 
         private static User FromEncoded(User entry)
         {
+            if (entry == null) return null;
             User u = new User(entry);
             u.Name = Decode(u.Name);
             foreach (var account in u.accounts)
@@ -468,6 +488,28 @@ namespace Server
                 History.Add(tx);
                 return this;
             }
+
+            public override string ToString()
+            {
+                StringBuilder builder = new StringBuilder(balance.ToString());
+                foreach (var tx in History)
+                {
+                    builder
+                    .Append('{')
+                    .Append(tx.from.ToBase64String())
+                    .Append('&')
+                    .Append(tx.fromAccount.ToBase64String())
+                    .Append('&')
+                    .Append(tx.to.ToBase64String())
+                    .Append('&')
+                    .Append(tx.toAccount.ToBase64String())
+                    .Append('&')
+                    .Append(tx.amount.ToString());
+                    if (tx.meta != null) builder.Append('&').Append(tx.meta.ToBase64String());
+                    builder.Append('}');
+                }
+                return builder.ToString();
+            }
         }
 
         public class User
@@ -539,6 +581,9 @@ namespace Server
             {
                 if (!e.Name.Equals("User")) return null;
                 User user = new User();
+                foreach (var attribute in e.Attributes)
+                    if (attribute.Key.Equals("admin") && attribute.Value.Equals("true"))
+                        user.IsAdministrator = true;
                 foreach (var entry in e.NestedEntries)
                 {
                     if (entry.Name.Equals("Name")) user.Name = entry.Text;

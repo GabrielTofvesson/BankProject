@@ -142,7 +142,7 @@ namespace Server
             return true;
         }
 
-        public void ShowError() => Output.Error($"Usage: {CommandString}");
+        public void ShowError() => Output.Error($"Usage: {CommandString}", true, false);
     }
 
     public static class Commands
