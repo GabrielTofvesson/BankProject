@@ -12,6 +12,8 @@ namespace Client.ConsoleForms.Graphics
         public int ViewCount { get => innerViews.Count; }
         public ConsoleColor SelectBackground { get; set; }
         public ConsoleColor SelectText { get; set; }
+        private int maxWidth;
+        private readonly bool limited;
 
 
         public override Region Occlusion => new Region(new Rectangle(-padding.Left(), -padding.Top(), ContentWidth + padding.Right(), ContentHeight + padding.Bottom()));
@@ -22,17 +24,55 @@ namespace Client.ConsoleForms.Graphics
             SelectText = (ConsoleColor)parameters.AttribueAsInt("text_select_color", (int)ConsoleColor.Gray);
 
 
-            int maxWidth = parameters.AttribueAsInt("width", -1);
-            bool limited = maxWidth != -1;
+            maxWidth = parameters.AttribueAsInt("width", -1);
+            limited = maxWidth != -1;
 
             foreach (var view in parameters.nestedData.FirstOrNull(n => n.Name.Equals("Views"))?.nestedData ?? new List<ViewData>())
             {
                 // Limit content width
                 if (limited && view.AttribueAsInt("width") > maxWidth) view.attributes["width"] = maxWidth.ToString();
+                
+                innerViews.Add(ConsoleController.LoadView(parameters.attributes["xmlns"], view, I18n)); // Load the view in with standard namespace
+            }
 
-                Tuple<string, View> v = ConsoleController.LoadView(parameters.attributes["xmlns"], view, I18n); // Load the view in with standard namespace
+            ComputeSize();
+
+            SelectedView = 0;
+        }
+
+
+        // Optimized to add multiple view before recomputing size
+        public void AddViews(params Tuple<string, View>[] data)
+        {
+            foreach (var datum in data)
+            {
+                datum.Item2.DrawBorder = false;
+                _AddView(datum.Item2, datum.Item1);
+            }
+            ComputeSize();
+        }
+        // Add single view
+        public void AddView(View v, string viewID)
+        {
+            _AddView(v, viewID);
+            ComputeSize();
+        }
+        // Add view without recomputing layout size
+        private void _AddView(View v, string viewID)
+        {
+            foreach (var data in innerViews)
+                if (data.Item1 != null && data.Item1.Equals(viewID))
+                    throw new SystemException("Cannot load view with same id"); // TODO: Replace with custom exception
+            innerViews.Add(new Tuple<string, View>(viewID, v));
+        }
+
+        protected void ComputeSize()
+        {
+            ContentHeight = 0;
+            foreach(var v in innerViews)
+            {
                 v.Item2.DrawBorder = false;
-                innerViews.Add(v);
+                //innerViews.Add(v);
 
                 if (!limited) maxWidth = Math.Max(v.Item2.ContentWidth, maxWidth);
 
@@ -40,12 +80,11 @@ namespace Client.ConsoleForms.Graphics
             }
             ++ContentHeight;
 
-            SelectedView = 0;
-
             ContentWidth = maxWidth;
         }
 
         public View GetView(string name) => innerViews.FirstOrNull(v => v.Item1.Equals(name))?.Item2;
+        public T GetView<T>(string name) where T : View => (T)GetView(name);
 
         protected override void _Draw(int left, ref int top)
         {

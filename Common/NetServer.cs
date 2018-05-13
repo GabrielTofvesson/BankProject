@@ -1,4 +1,4 @@
-﻿using Common.Cryptography.KeyExchange;
+﻿using Tofvesson.Common.Cryptography.KeyExchange;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tofvesson.Crypto;
 
-namespace Common
+namespace Tofvesson.Net
 {
     public sealed class NetServer
     {

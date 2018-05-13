@@ -40,7 +40,7 @@ namespace Client.ConsoleForms
             if (keypress.ValidEvent && keypress.Event.Key == ConsoleKey.Escape) OnDestroy();
             return controller.Dirty;
         }
-
+        
         public abstract void OnCreate();  // Called when a context is loaded as the primary context of the ConsoleController
         public abstract void OnDestroy(); // Called when a context is unloaded
 
@@ -64,5 +64,6 @@ namespace Client.ConsoleForms
             foreach (var viewEntry in views)
                 Hide(viewEntry.Item2);
         }
+        public string GetIntlString(string i18n) => manager.GetIntlString(i18n);
     }
 }

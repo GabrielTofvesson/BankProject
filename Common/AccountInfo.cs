@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Tofvesson.Crypto;
 
-namespace Common
+namespace Tofvesson.Common
 {
     public class User
     {

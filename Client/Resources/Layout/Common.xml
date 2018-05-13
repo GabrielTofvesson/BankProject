@@ -22,4 +22,12 @@
     </Options>
     <Text>@string/NC_connerr</Text>
   </DialogView>
+
+  <TextView id="data_fetch"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Text>@string/GENERiC_fetch</Text>
+  </TextView>
 </Resources>

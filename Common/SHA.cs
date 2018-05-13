@@ -82,6 +82,8 @@ namespace Tofvesson.Crypto
             public byte Get(int idx) => (byte)((idx < 4 ? i0 : idx < 8 ? i1 : idx < 12 ? i2 : idx < 16 ? i3 : i4)>>(8*(idx%4)));
         }
         private static readonly uint[] block = new uint[80];
+        // Memory-optimized implementation of Secure Hashing Algorithm 1 (SHA1)
+        // NOTE: This method is NOT thread-safe!
         public static SHA1Result SHA1_Opt(byte[] message)
         {
             SHA1Result result = new SHA1Result
@@ -113,8 +115,8 @@ namespace Tofvesson.Crypto
             }
 
             int chunks = max / 64;
-
-            // Replaces the recurring allocation of 80 uints
+            
+            // Slow (at least with debugger because it spams stack frames)
             /*uint ComputeIndex(int block, int idx)
             {
                 if (idx < 16)
@@ -159,6 +161,8 @@ namespace Tofvesson.Crypto
                 result.i3 += d;
                 result.i4 += e;
             }
+
+            // Serialize result
             result.i0 = Support.SwapEndian(result.i0);
             result.i1 = Support.SwapEndian(result.i1);
             result.i2 = Support.SwapEndian(result.i2);

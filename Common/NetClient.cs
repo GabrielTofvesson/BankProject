@@ -1,4 +1,4 @@
-﻿using Common.Cryptography.KeyExchange;
+﻿using Tofvesson.Common.Cryptography.KeyExchange;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Tofvesson.Common;
 using Tofvesson.Crypto;
 
-namespace Common
+namespace Tofvesson.Net
 {
     public delegate string OnMessageRecieved(string request, Dictionary<string, string> associations, ref bool stayAlive);
     public delegate void OnClientConnectStateChanged(NetClient client, bool connect);
@@ -31,14 +31,18 @@ namespace Common
         private Thread eventListener;
 
         // Communication parameters
-        protected readonly Queue<byte[]> messageBuffer = new Queue<byte[]>();
-        public readonly Dictionary<string, string> assignedValues = new Dictionary<string, string>();
+        protected readonly Queue<byte[]> messageBuffer = new Queue<byte[]>();                           // Outbound communication buffer
+        public readonly Dictionary<string, string> assignedValues = new Dictionary<string, string>();   // Local connection-related "variables"
         protected readonly OnMessageRecieved handler;
         protected internal readonly OnClientConnectStateChanged onConn;
-        protected readonly IPAddress target;
-        protected readonly int bufSize;
-        protected readonly IKeyExchange exchange;
-        protected internal long lastComm = DateTime.Now.Ticks; // Latest comunication event (in ticks)
+        protected readonly IPAddress target;                                                            // Remote target IP-address
+        protected readonly int bufSize;                                                                 // Communication buffer size
+        protected readonly IKeyExchange exchange;                                                       // Cryptographic key exchange algorithm
+        protected internal long lastComm = DateTime.Now.Ticks;
+        public IPEndPoint Remote
+        {
+            get => (IPEndPoint) Connection?.RemoteEndPoint;
+        }
 
         // Connection to peer
         protected Socket Connection { get; private set; }

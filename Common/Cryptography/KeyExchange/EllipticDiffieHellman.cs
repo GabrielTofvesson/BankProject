@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Tofvesson.Common;
 using Tofvesson.Crypto;
 
-namespace Common.Cryptography.KeyExchange
+namespace Tofvesson.Common.Cryptography.KeyExchange
 {
     public class EllipticDiffieHellman : IKeyExchange
     {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Tofvesson.Common;
 using Tofvesson.Crypto;
 
-namespace Common
+namespace Tofvesson.Net
 {
     // Helper methods. WithHeader() should really just be in Support.cs
     public static class NetSupport

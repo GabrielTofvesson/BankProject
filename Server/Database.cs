@@ -543,8 +543,11 @@ namespace Server
                 Name = name;
                 IsAdministrator = admin;
                 Salt = Convert.ToBase64String(salt);
-                PasswordHash = generatePass ? Convert.ToBase64String(KDF.PBKDF2(KDF.HMAC_SHA1, Encoding.UTF8.GetBytes(passHash), Encoding.UTF8.GetBytes(Salt), 8192, 320)) :  passHash;
+                PasswordHash = generatePass ? ComputePass(passHash) :  passHash;
             }
+
+            public string ComputePass(string pass)
+                => Convert.ToBase64String(KDF.PBKDF2(KDF.HMAC_SHA1, Encoding.UTF8.GetBytes(pass), Encoding.UTF8.GetBytes(Salt), 8192, 320));
 
             public bool Authenticate(string password)
                 => Convert.ToBase64String(KDF.PBKDF2(KDF.HMAC_SHA1, Encoding.UTF8.GetBytes(password), Encoding.UTF8.GetBytes(Salt), 8192, 320)).Equals(PasswordHash);

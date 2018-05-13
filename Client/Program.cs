@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using Client;
 using Client.ConsoleForms;
 using Client.ConsoleForms.Parameters;
-using Common;
+using Tofvesson.Common;
 using Tofvesson.Crypto;
 
 namespace ConsoleForms

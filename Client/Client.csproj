@@ -67,8 +67,9 @@
     <Compile Include="ConsoleForms\Timer.cs" />
     <Compile Include="ConsoleForms\ViewData.cs" />
     <Compile Include="Context\NetContext.cs" />
-    <Compile Include="Networking.cs" />
+    <Compile Include="BankNetInteractor.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Promise.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -22,6 +22,8 @@ namespace Client
 
             bool connecting = false;
 
+            
+
             GetView<InputView>("NetConnect").SubmissionsListener = i =>
             {
                 if (connecting)
@@ -38,25 +40,6 @@ namespace Client
                     connecting = true;
                     // Connect to server here
                     BankNetInteractor ita = new BankNetInteractor(i.Inputs[0].Text, prt);
-                    /*
-                    try
-                    {
-                        //var t = ita.Connect();
-                        //while (!t.IsCompleted)
-                        //    if (t.IsCanceled || t.IsFaulted)
-                        //    {
-                        //        Show("ConnectError");
-                        //        return;
-                        //    }
-                        //    else System.Threading.Thread.Sleep(125);
-                    }
-                    catch
-                    {
-                        Show("ConnectionError");
-                        connecting = false;
-                        return;
-                    }
-                    */
 
                     Promise verify;
                     try
@@ -65,7 +48,8 @@ namespace Client
                     }
                     catch
                     {
-                        Show("ConnectionError"); 
+                        Show("ConnectionError");
+                        connecting = false;
                         return;
                     }
                     verify.Subscribe =
@@ -74,12 +58,13 @@ namespace Client
                             void load() => manager.LoadContext(new WelcomeContext(manager, ita));
 
                             // Add condition check for remote peer verification
-                            if (bool.Parse(p.Value)) controller.Popup("Server identity verified!", 1000, ConsoleColor.Green, load);
-                            else controller.Popup("Remote server identity could not be verified!", 5000, ConsoleColor.Red, load);
+                            if (bool.Parse(p.Value)) controller.Popup(GetIntlString("@string/NC_verified"), 1000, ConsoleColor.Green, load);
+                            else controller.Popup(GetIntlString("@string/verror"), 5000, ConsoleColor.Red, load);
                         };
                     DialogView identityNotify = GetView<DialogView>("IdentityVerify");
                     identityNotify.RegisterSelectListener(
                         (vw, ix, nm) => {
+                            connecting = false;
                             verify.Subscribe = null; // Clear subscription
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                             ita.CancelAll();

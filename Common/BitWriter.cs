@@ -88,7 +88,7 @@ namespace Tofvesson.Common
                 Debug.WriteLine("BitWriter: The type \"" + b.GetType() + "\" is not supported by the Binary Serializer. It will be ignored!");
         }
 
-
+        // Public write methods to prevent errors when chaning types
         public void WriteBool(bool b)               => Push(b);
         public void WriteFloat(float f)             => Push(f);
         public void WriteDouble(double d)           => Push(d);
@@ -126,6 +126,7 @@ namespace Tofvesson.Common
             foreach (T t1 in t) Push(signed ? (object)ZigZagEncode(t1 as long? ?? t1 as int? ?? t1 as short? ?? t1 as sbyte? ?? 0, size) : (object)t1);
         }
 
+        // Actually serialize
         public byte[] Finalize()
         {
             byte[] b = new byte[GetFinalizeSize()];
@@ -157,9 +158,11 @@ namespace Tofvesson.Common
                 }
                 else Serialize(item, buffer, ref bitOffset, ref isAligned);
 
+            collect.Clear(); // Allow GC to clean up any dangling references
             return (bitCount / 8) + (bitCount % 8 == 0 ? 0 : 1);
         }
 
+        // Compute output size (in bytes)
         public long GetFinalizeSize()
         {
             long bitCount = 0;
@@ -167,6 +170,8 @@ namespace Tofvesson.Common
             return ((bitCount / 8) + (bitCount % 8 == 0 ? 0 : 1));
         }
 
+        // Serialization: Originally used dynamic, but due to the requirement of an adaptation using without dynamic,
+        // it has been completely retrofitted to not use dynamic
         private static void Serialize<T>(T t, byte[] writeTo, ref long bitOffset, ref bool isAligned)
         {
             Type type = t.GetType();
@@ -238,6 +243,7 @@ namespace Tofvesson.Common
                     else if (t is uint) value = t as uint? ?? 0;
                     else /*if (t is ulong)*/ value = t as ulong? ?? 0;
 
+                    // VarInt implementation
                     if (value <= 240) WriteByte(writeTo, (byte)value, bitOffset, isAligned);
                     else if (value <= 2287)
                     {
@@ -286,10 +292,12 @@ namespace Tofvesson.Common
                 }
             }
         }
-
+        
+        // Write oddly bounded data
         private static byte Read7BitRange(byte higher, byte lower, int bottomBits) => (byte)((higher << bottomBits) & (lower & (0xFF << (8-bottomBits))));
         private static byte ReadNBits(byte from, int offset, int count) => (byte)(from & ((0xFF >> (8-count)) << offset));
 
+        // Check if type is signed (int, long, etc)
         private static bool IsSigned(Type t) => t == typeof(sbyte) || t == typeof(short) || t == typeof(int) || t == typeof(long);
 
         private static Type GetUnsignedType(Type t) =>
@@ -299,8 +307,10 @@ namespace Tofvesson.Common
             t == typeof(long) ? typeof(ulong) :
             null;
 
+        // Encode signed values in a way that preserves magnitude
         private static ulong ZigZagEncode(long d, int bytes) => (ulong)(((d >> (bytes * 8 - 1))&1) | (d << 1));
 
+        // Gets the amount of bits required to serialize a given value
         private static long GetBitCount<T>(T t)
         {
             Type type = t.GetType();
@@ -328,6 +338,7 @@ namespace Tofvesson.Common
             return count;
         }
 
+        // Write methods
         private static void WriteBit(byte[] b, bool bit, long index)
             => b[index / 8] = (byte)((b[index / 8] & ~(1 << (int)(index % 8))) | (bit ? 1 << (int)(index % 8) : 0));
         private static void WriteByte(byte[] b, ulong value, long index, bool isAligned) => WriteByte(b, (byte)value, index, isAligned);

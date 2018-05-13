@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tofvesson.Crypto;
 
-namespace Common.Cryptography
+namespace Tofvesson.Common.Cryptography
 {
     public class EllipticCurve
     {

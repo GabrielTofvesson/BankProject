@@ -11,10 +11,12 @@
 	<Entry name="NC_porterr">Den givna porten är inte giltig</Entry>
 	<Entry name="NC_connerr">Kunde inte koppla till servern</Entry>
 	<Entry name="NC_identity">Verifierar serverns identitet...</Entry>
+	<Entry name="NC_verified">Serveridentitet verifierad!</Entry>
+	<Entry name="NC_verror">Serveridentitet kunde inte verifieras!</Entry>
 
 	<Entry name="SU_welcome">Välkommen till Tofvessons banksystem!
-		För att fortsätta, tryck [ENTER]
-		För att backa, tryck [ESCAPE]</Entry>
+För att fortsätta, tryck [ENTER]
+För att backa, tryck [ESCAPE]</Entry>
 	<Entry name="SU_reg">Registrera konto</Entry>
 	<Entry name="SU_regstall">Registrerar...</Entry>
 	<Entry name="SU_dup">Ett konto med det givna användarnamnet finns redan!</Entry>
@@ -45,7 +47,10 @@
     <Entry name="SE_info">"$0"
 Kontobalans: $1
 Begynnelsedatum: $2</Entry>
+	<Entry name="SE_autolo">Du har automatiskt loggats ut p.g.a. inaktivitet</Entry>
+	<Entry name="SE_lo">Utloggad</Entry>
 
+	<Entry name="GENERIC_fetch">Hämtar data...</Entry>
 	<Entry name="GENERIC_dismiss">Stäng</Entry>
 	<Entry name="GENERIC_accept">Ok</Entry>
 	<Entry name="GENERIC_positive">Ja</Entry>

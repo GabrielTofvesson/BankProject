@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace Common
+namespace Tofvesson.Common
 {
     public sealed class TimeStampWriter : TextWriter
     {

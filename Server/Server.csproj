@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command.cs" />
+    <Compile Include="ConsoleReader.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Output.cs" />
     <Compile Include="CommandHandler.cs" />

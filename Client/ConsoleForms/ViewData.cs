@@ -72,6 +72,8 @@ namespace Client.ConsoleForms.Parameters
             return this;
         }
 
+        public ViewData AddNestedSimple(string name, string text = "") => AddNested(new ViewData(name, text));
+
         public string GetAttribute(string attr, string def = "") => attributes.ContainsKey(attr) ? attributes[attr] : def;
     }
 }

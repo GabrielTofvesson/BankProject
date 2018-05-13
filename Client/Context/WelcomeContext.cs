@@ -13,7 +13,6 @@ namespace Client
     public sealed class WelcomeContext : Context
     {
         private readonly BankNetInteractor interactor;
-        private long token;
         private Promise promise;
         private bool forceDestroy = true;
 
@@ -64,7 +63,7 @@ namespace Client
                         else
                         {
                             forceDestroy = false;
-                            manager.LoadContext(new SessionContext(manager, interactor, response.Value));
+                            manager.LoadContext(new SessionContext(manager, interactor));
                         }
                     };
                 }
@@ -111,16 +110,16 @@ namespace Client
                         }
                         promise.Subscribe =
                         response =>
-                        {
-                            Hide("RegWait");
-                            if (response.Value.StartsWith("ERROR"))
-                                Show("DuplicateAccountError");
-                            else
                             {
-                                forceDestroy = false;
-                                manager.LoadContext(new SessionContext(manager, interactor, response.Value));
-                            }
-                        };
+                                Hide("RegWait");
+                                if (!bool.Parse(response.Value))
+                                    Show("DuplicateAccountError");
+                                else
+                                {
+                                    forceDestroy = false;
+                                    manager.LoadContext(new SessionContext(manager, interactor));
+                                }
+                            };
                     }
 
                     if (i.Inputs[1].Text.Length < 5 || i.Inputs[1].Text.StartsWith("asdfasdf") || i.Inputs[1].Text.StartsWith("asdf1234"))
@@ -184,7 +183,7 @@ namespace Client
             if (promise != null && !promise.HasValue) promise.Subscribe = null;
 
             // Stop listening
-            interactor.UnregisterListener(token);
+            //interactor.UnregisterListener(token);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             if (forceDestroy) interactor.CancelAll();

@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common.Cryptography.KeyExchange
+namespace Tofvesson.Common.Cryptography.KeyExchange
 {
     public interface IKeyExchange
     {

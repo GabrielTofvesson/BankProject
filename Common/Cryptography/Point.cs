@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common.Cryptography
+namespace Tofvesson.Common.Cryptography
 {
     public class Point
     {
