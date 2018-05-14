@@ -58,12 +58,13 @@ namespace Client
                             void load() => manager.LoadContext(new WelcomeContext(manager, ita));
 
                             // Add condition check for remote peer verification
-                            if (bool.Parse(p.Value)) controller.Popup(GetIntlString("@string/NC_verified"), 1000, ConsoleColor.Green, load);
-                            else controller.Popup(GetIntlString("@string/verror"), 5000, ConsoleColor.Red, load);
+                            if (bool.Parse(p.Value)) controller.Popup(GetIntlString("NC_verified"), 1000, ConsoleColor.Green, load);
+                            else controller.Popup(GetIntlString("verror"), 5000, ConsoleColor.Red, load);
                         };
                     DialogView identityNotify = GetView<DialogView>("IdentityVerify");
                     identityNotify.RegisterSelectListener(
                         (vw, ix, nm) => {
+                            Hide(identityNotify);
                             connecting = false;
                             verify.Subscribe = null; // Clear subscription
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -73,10 +74,12 @@ namespace Client
                         });
                     Show(identityNotify);
                 }
-                else if (i.Inputs[0].Text.Length == 0 || i.Inputs[1].Text.Length == 0) controller.AddView(views.GetNamed("EmptyFieldError"));
+                else if (i.Inputs[0].Text.Length == 0 || i.Inputs[1].Text.Length == 0) Show("EmptyFieldError");
                 else if (!ip) Show("IPError");
                 else Show("PortError");
             };
+
+            GetView("NetConnect").OnBackEvent = v => controller.ShouldExit = true;
         }
 
         public override void OnCreate() => Show("NetConnect");

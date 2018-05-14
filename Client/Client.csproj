@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Account.cs" />
     <Compile Include="ConsoleForms\CancellationPipe.cs" />
     <Compile Include="ConsoleForms\ConsoleController.cs" />
     <Compile Include="ConsoleForms\Context.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="ConsoleForms\ViewData.cs" />
     <Compile Include="Context\NetContext.cs" />
     <Compile Include="BankNetInteractor.cs" />
+    <Compile Include="ParseException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Promise.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -78,6 +80,7 @@
     </Compile>
     <Compile Include="Context\SessionContext.cs" />
     <Compile Include="Context\WelcomeContext.cs" />
+    <Compile Include="Transaction.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

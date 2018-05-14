@@ -12,10 +12,11 @@ namespace Client.ConsoleForms.Graphics
     public abstract class View
     {
         protected delegate void EventAction();
+        public delegate void ViewEvent(View v);
 
         protected static readonly Padding DEFAULT_PADDING = new AbsolutePadding(0, 0, 0, 0);
 
-        protected readonly Padding padding;
+        protected internal readonly Padding padding;
         protected readonly Gravity gravity;
         protected readonly bool vCenter, hCenter;
         protected readonly string back_data;
@@ -30,6 +31,7 @@ namespace Client.ConsoleForms.Graphics
         public abstract Region Occlusion { get; }
         public bool Dirty { get; set; }
         public LangManager I18n { get; private set; }
+        public ViewEvent OnBackEvent { get; set; }
 
         public View(ViewData parameters, LangManager lang)
         {
@@ -62,32 +64,63 @@ namespace Client.ConsoleForms.Graphics
         public void Draw(int left, ref int top)
         {
             Dirty = false;
-            if (DrawBorder) _DrawBorder(left, top);
-            _Draw(left + 1, ref top);
+            if (DrawBorder)
+                _DrawBorder(left, top);
+            DrawPadding(ref left, ref top);
+            _Draw(left, ref top);
         }
         public virtual void _DrawBorder(int left, int top)
         {
             Console.BackgroundColor = BorderColor;
-            Console.SetCursorPosition(left - 1, top - 1);
-            Console.Write(Filler(Border, ContentWidth + 2));
-            for (int i = -1; i < ContentHeight; ++i)
+            Console.SetCursorPosition(left - 1 - padding.Left(), top - 1 - padding.Top());
+            Console.Write(Filler(Border, ContentWidth + padding.Left() + padding.Right() + 4));
+            for (int i = 0; i < ContentHeight + padding.Top() + padding.Bottom(); ++i)
             {
-                Console.SetCursorPosition(left-1, top + i);
+                Console.SetCursorPosition(left - padding.Left() - 1, top - padding.Top() + i);
                 Console.Write(Filler(Border, 2));
-                Console.SetCursorPosition(left + ContentWidth + 1, top + i);
+                Console.SetCursorPosition(left + ContentWidth + padding.Left() + padding.Right() - 1, top - padding.Top() + i);
                 Console.Write(Filler(Border, 2));
             }
-            Console.SetCursorPosition(left-1, top + ContentHeight);
-            Console.Write(Filler(Border, ContentWidth + 4));
+            Console.SetCursorPosition(left - padding.Left() - 1, top + ContentHeight + padding.Bottom());
+            Console.Write(Filler(Border, ContentWidth + padding.Left() + padding.Right() + 4));
             Console.BackgroundColor = ConsoleColor.Black;
+        }
+        public virtual void DrawPadding(ref int left, ref int top)
+        {
+            Console.BackgroundColor = BackgroundColor;
+            // Top padding
+            for(int i = 0; i<padding.Top(); ++i)
+            {
+                Console.SetCursorPosition(left - padding.Left() + 1, top + i - padding.Top());
+                Console.Write(Filler(' ', padding.Left() + ContentWidth + padding.Right()));
+            }
+
+            // Left-right padding
+            for(int i = 0; i<ContentHeight; ++i)
+            {
+                Console.SetCursorPosition(left - padding.Left() + 1, top + i);
+                Console.Write(Filler(' ', padding.Left()));
+                Console.SetCursorPosition(left + ContentWidth + padding.Left() - 1, top + i);
+                Console.Write(Filler(' ', padding.Right()));
+            }
+
+            // Bottom padding
+            for(int i = 0; i<padding.Bottom(); ++i)
+            {
+                Console.SetCursorPosition(left - 1, top + ContentHeight + i);
+                Console.Write(Filler(' ', padding.Left() + ContentWidth + padding.Right()));
+            }
+
+            left += padding.Left() / 2; // Increment left offset
         }
         protected abstract void _Draw(int left, ref int top);
         public virtual bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus)
         {
-            if (back_data.Length != 0 && info.ValidEvent && inFocus && info.Event.Key == ConsoleKey.Escape)
+            if ((back_data.Length != 0 || OnBackEvent!=null) && info.ValidEvent && inFocus && info.Event.Key == ConsoleKey.Escape)
             {
                 info.ValidEvent = false;
-                ParseAction(back_data, true)();
+                if(back_data.Length!=0) ParseAction(back_data, true)();
+                OnBackEvent?.Invoke(this);
             }
             return false;
         }
@@ -119,7 +152,7 @@ namespace Client.ConsoleForms.Graphics
             };
         }
 
-        protected static string Filler(char c, int count)
+        protected internal static string Filler(char c, int count)
         {
             if (count == 0) return "";
             StringBuilder builder = new StringBuilder(count);

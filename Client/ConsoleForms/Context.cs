@@ -65,5 +65,11 @@ namespace Client.ConsoleForms
                 Hide(viewEntry.Item2);
         }
         public string GetIntlString(string i18n) => manager.GetIntlString(i18n);
+        protected void RegisterAutoHide(params string[] viewIDs)
+        {
+            void HideEvent(View v) => Hide(v);
+            foreach (var viewID in viewIDs)
+                GetView(viewID).OnBackEvent = HideEvent;
+        }
     }
 }

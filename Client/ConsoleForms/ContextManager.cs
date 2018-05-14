@@ -27,6 +27,6 @@ namespace Client.ConsoleForms
         public bool Update(ConsoleController.KeyEvent keypress, bool hasKeypress = true)
             => Current?.Update(keypress, hasKeypress) == true;
 
-        public string GetIntlString(string i18n) => I18n.MapIfExists(i18n);
+        public string GetIntlString(string i18n) => I18n.MapIfExists((i18n.StartsWith(LangManager.MAPPING_PREFIX) ? "" : LangManager.MAPPING_PREFIX) + i18n);
     }
 }

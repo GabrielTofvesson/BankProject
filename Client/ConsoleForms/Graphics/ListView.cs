@@ -16,7 +16,14 @@ namespace Client.ConsoleForms.Graphics
         private readonly bool limited;
 
 
-        public override Region Occlusion => new Region(new Rectangle(-padding.Left(), -padding.Top(), ContentWidth + padding.Right(), ContentHeight + padding.Bottom()));
+        public override Region Occlusion => new Region(
+            new Rectangle(
+                -padding.Left() - (DrawBorder ? 2 : 0),                 // Left bound
+                -padding.Top() - (DrawBorder ? 1 : 0),                  // Top bound
+                ContentWidth + padding.Right() + (DrawBorder ? 2 : 0) + 1,  // Right bound
+                ContentHeight + padding.Bottom() + (DrawBorder ? 1 : 0) // Bottom bound
+                )
+            );
 
         public ListView(ViewData parameters, LangManager lang) : base(parameters, lang)
         {
@@ -42,28 +49,59 @@ namespace Client.ConsoleForms.Graphics
 
 
         // Optimized to add multiple view before recomputing size
-        public void AddViews(params Tuple<string, View>[] data)
+        public void AddViews(params Tuple<string, View>[] data) => AddViews(0, data);
+        public void AddViews(int insert, params Tuple<string, View>[] data)
         {
+            int inIdx = insert;
             foreach (var datum in data)
             {
                 datum.Item2.DrawBorder = false;
-                _AddView(datum.Item2, datum.Item1);
+                _AddView(datum.Item2, datum.Item1, inIdx++);
             }
             ComputeSize();
         }
         // Add single view
-        public void AddView(View v, string viewID)
+        public void AddView(View v, string viewID, int insert = 0)
         {
-            _AddView(v, viewID);
+            _AddView(v, viewID, insert);
             ComputeSize();
         }
         // Add view without recomputing layout size
-        private void _AddView(View v, string viewID)
+        private void _AddView(View v, string viewID, int insert)
         {
             foreach (var data in innerViews)
                 if (data.Item1 != null && data.Item1.Equals(viewID))
                     throw new SystemException("Cannot load view with same id"); // TODO: Replace with custom exception
-            innerViews.Add(new Tuple<string, View>(viewID, v));
+            innerViews.Insert(Math.Min(insert, innerViews.Count), new Tuple<string, View>(viewID, v));
+        }
+
+        public bool RemoveView(string name)
+        {
+            for (int i = innerViews.Count - 1; i >= 0; --i)
+                if (innerViews[i].Item1.Equals(name))
+                {
+                    innerViews.RemoveAt(i);
+                    return true;
+                }
+            return false;
+        }
+
+        public bool RemoveView(View view)
+        {
+            for (int i = innerViews.Count - 1; i >= 0; --i)
+                if (innerViews[i].Item2.Equals(view))
+                {
+                    innerViews.RemoveAt(i);
+                    return true;
+                }
+            return false;
+        }
+
+        public void RemoveIf(Predicate<Tuple<string, View>> p)
+        {
+            for(int i = innerViews.Count - 1; i>=0; --i)
+                if (p(innerViews[i]))
+                    innerViews.RemoveAt(i);
         }
 
         protected void ComputeSize()
@@ -88,9 +126,10 @@ namespace Client.ConsoleForms.Graphics
 
         protected override void _Draw(int left, ref int top)
         {
+            ++left;
             foreach(var view in innerViews)
             {
-                DrawBlankLine(left, ref top);
+                DrawBlankLine(left - 1, ref top);
                 ConsoleColor
                     bgHold = view.Item2.BackgroundColor,
                     fgHold = view.Item2.TextColor;
@@ -102,7 +141,7 @@ namespace Client.ConsoleForms.Graphics
                 }
                 Region sub = new Region(new Rectangle(0, 0, ContentWidth, view.Item2.ContentHeight)).Subtract(view.Item2.Occlusion);
 
-                sub.Offset(left, top);
+                sub.Offset(left - 1, top);
 
                 ConsoleController.ClearRegion(sub, view.Item2.BackgroundColor);
 
@@ -114,7 +153,7 @@ namespace Client.ConsoleForms.Graphics
                     view.Item2.TextColor = fgHold;
                 }
             }
-            DrawBlankLine(left, ref top);
+            DrawBlankLine(left - 1, ref top);
         }
 
         protected virtual void DrawView(int left, ref int top, View v) => v.Draw(left, ref top);
@@ -128,17 +167,16 @@ namespace Client.ConsoleForms.Graphics
 
         public override bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus)
         {
-            if (!inFocus) return false;
-            if (innerViews[SelectedView].Item2.HandleKeyEvent(info, inFocus)) return true;
-            else if (!info.ValidEvent) return false;
+            if (!inFocus || !info.ValidEvent) return false;
 
+            bool changed = base.HandleKeyEvent(info, inFocus) || innerViews[SelectedView].Item2.HandleKeyEvent(info, inFocus);
+            info.ValidEvent = false;
             // Handle navigation
             switch (info.Event.Key)
             {
                 case ConsoleKey.UpArrow:
                     if (SelectedView > 0)
                     {
-                        info.ValidEvent = false;
                         --SelectedView;
                         return true;
                     }
@@ -146,14 +184,13 @@ namespace Client.ConsoleForms.Graphics
                 case ConsoleKey.DownArrow:
                     if(SelectedView < innerViews.Count - 1)
                     {
-                        info.ValidEvent = false;
                         ++SelectedView;
                         return true;
                     }
                     break;
             }
 
-            return base.HandleKeyEvent(info, inFocus);
+            return changed;
         }
     }
 }

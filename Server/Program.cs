@@ -15,10 +15,13 @@ namespace Server
 {
     class Program
     {
+        // Message-of-the-day (for all days)
         private const string CONSOLE_MOTD = @"Tofvesson Enterprises Banking Server
 By Gabriel Tofvesson
 
 Use command 'help' to get a list of available commands";
+
+        // Specific error reference localization prefix
         private const string VERBOSE_RESPONSE = "@string/REMOTE_";
         public static int verbosity = 2;
         public static void Main(string[] args)
@@ -136,7 +139,10 @@ Use command 'help' to get a list of available commands";
                 {
                     string[] cmd = ParseCommand(r, out long id);
 
-                    // Perform a signature verification by signing a nonce
+                    // Handle corrupt or badly formatted messages from client
+                    if (cmd == null) return ErrorResponse(-1, "corrupt");
+
+                    // Server endpoints
                     switch (cmd[0])
                     {
                         case "Auth": // Log in to a user account (get a session id)
@@ -168,8 +174,11 @@ Use command 'help' to get a list of available commands";
                                 Output.Info($"Performing availability check on name \"{name}\"");
                                 return GenerateResponse(id, !db.ContainsUser(name));
                             }
-                        case "Refresh":
-                            return GenerateResponse(id, manager.Refresh(cmd[1]));
+                        case "Refresh": // Refresh a session
+                            {
+                                if (verbosity > 0) Output.Info($"Refreshing session \"{cmd[1]}\"");
+                                return GenerateResponse(id, manager.Refresh(cmd[1]));
+                            }
                         case "List": // List all available users for transactions
                             {
                                 if (!GetUser(cmd[1], out Database.User user))
@@ -202,7 +211,7 @@ Use command 'help' to get a list of available commands";
                                     GetAccount(name, user, out var account))
                                 {
                                     // Don't print input data to output in case sensitive information was included
-                                    Output.Error($"Failed to create account \"{name}\" for user \"{manager.GetUser(session)}\" (sessionID={session})");
+                                    Output.Error($"Failed to create account \"{name}\" for user \"{manager.GetUser(session).Name}\" (sessionID={session})");
                                     return ErrorResponse(id);
                                 }
                                 manager.Refresh(session);
@@ -299,7 +308,7 @@ Use command 'help' to get a list of available commands";
                                     return ErrorResponse(id, (user == null ? "badsession" : account == null ? "badacc" : "hasbal"));
                                 }
                                 manager.Refresh(session);
-                                // Response example: "123.45{Sm9obiBEb2U=&Sm9obnMgQWNjb3VudA==&SmFuZSBEb2U=&SmFuZXMgQWNjb3VudA==&123.45&SGV5IHRoZXJlIQ==}"
+                                // Response example: "123.45{Sm9obiBEb2U=&Sm9obnMgQWNjb3VudA==&SmFuZSBEb2U=&SmFuZXMgQWNjb3VudA==&123.45&SGV5IHRoZXJlIQ=="
                                 // Exmaple data: balance=123.45, Transaction{to="John Doe", toAccount="Johns Account", from="Jane Doe", fromAccount="Janes Account", amount=123.45, meta="Hey there!"}
                                 return GenerateResponse(id, account.ToString());
                             }
@@ -352,7 +361,7 @@ Use command 'help' to get a list of available commands";
                                 associations["session"] = sess;
                                 return GenerateResponse(id, sess);
                             }
-                        case "PassUPD":
+                        case "PassUPD": // Update password for a certain user
                             {
                                 if(!ParseDataPair(cmd[1], out var session, out var pass))
                                 {
@@ -367,6 +376,7 @@ Use command 'help' to get a list of available commands";
                                 manager.Refresh(session);
                                 user.Salt = Convert.ToBase64String(random.GetBytes(Math.Abs(random.NextShort() % 60) + 20));
                                 user.PasswordHash = user.ComputePass(pass);
+                                db.UpdateUser(user);
                                 return GenerateResponse(id, true);
                             }
                         case "Verify": // Verifies server identity
@@ -377,12 +387,16 @@ Use command 'help' to get a list of available commands";
                                     while (!t.IsCompleted && !t.IsFaulted) System.Threading.Thread.Sleep(75);
                                     if (t.IsFaulted)
                                     {
+                                        Output.Fatal("Encountered error when getting RSA keyset:\n"+t.Exception.ToString());
                                         return ErrorResponse(id, "server_err");
                                     }
                                     byte[] ser;
                                     using (BitWriter collector = new BitWriter())
                                     {
+                                        // Serialize public component of RSA keyset
                                         collector.PushArray(t.Result.Serialize());
+
+                                        // Prove server identity by signing a nonce with RSA
                                         collector.PushArray(t.Result.Encrypt(((BigInteger)bd.ReadUShort()).ToByteArray(), null, true));
                                         ser = collector.Finalize();
                                     }
@@ -398,7 +412,7 @@ Use command 'help' to get a list of available commands";
                             return ErrorResponse(id, "unwn"); // Unknown request
                     }
 
-                    return null;
+                    return null; // Don't respond to client
                 }, 
                 (c, b) => // Called every time a client connects or disconnects (conn + dc with every command/request)
                 {
@@ -416,10 +430,11 @@ Use command 'help' to get a list of available commands";
             CommandHandler commands = null;
             commands =
                 new CommandHandler(4, "  ", "", "- ")
-                .Append(new Command("help").SetAction(() => Output.Raw("Available commands:\n" + commands.GetString())), "Show this help menu")
-                .Append(new Command("stop").SetAction(() => running = false), "Stop server")
-                .Append(new Command("clear").SetAction(() => Output.Clear()), "Clear screen")
-                .Append(new Command("verb").WithParameter("level", 'l', Parameter.ParamType.STRING, true).SetAction((c, l) =>
+                .Append(new Command("help")
+                    .SetAction(() => Output.Raw("Available commands:\n" + commands.GetString())), "Show this help menu")        // Show help menu
+                .Append(new Command("stop").SetAction(() => running = false), "Stop server")                                    // Stop server
+                .Append(new Command("clear").SetAction(() => Output.Clear()), "Clear screen")                                   // Clear screen
+                .Append(new Command("verb").WithParameter("level", 'l', Parameter.ParamType.STRING, true).SetAction((c, l) =>   // Set output verbosity
                 {
                     if (l.Count == 1)
                     {
@@ -431,7 +446,7 @@ Use command 'help' to get a list of available commands";
                     }
                     Output.Raw($"Current verbosity level: {(verbosity<1?"FATAL":verbosity==1?"INFO":"DEBUG")}");
                 }), "Get or set verbosity level: DEBUG, INFO, FATAL (alternatively enter 0, 1 or 2 respectively)")
-                .Append(new Command("sess").WithParameter("sessionID", 'r', Parameter.ParamType.STRING, true).SetAction(
+                .Append(new Command("sess").WithParameter("sessionID", 'r', Parameter.ParamType.STRING, true).SetAction(        // Display active sessions
                     (c, l) => {
                         StringBuilder builder = new StringBuilder();
                         manager.Update(); // Ensure that we don't show expired sessions (artifacts exist until it is necessary to remove them)
@@ -447,7 +462,7 @@ Use command 'help' to get a list of available commands";
                         else --builder.Insert(0, "Active sessions:\n").Length;
                         Output.Raw(builder);
                     }), "List or refresh active client sessions")
-                .Append(new Command("list").WithParameter(Parameter.Flag('a')).SetAction(
+                .Append(new Command("list").WithParameter(Parameter.Flag('a')).SetAction(                                       // Display users
                     (c, l) => {
                         bool filter = l.HasFlag('a');
                         StringBuilder builder = new StringBuilder();
@@ -459,9 +474,9 @@ Use command 'help' to get a list of available commands";
                             Output.Raw(builder);
                         }
                     }), "Show registered users. Add \"-a\" to only list admins")
-                .Append(new Command("admin")
-                    .WithParameter("username", 'u', Parameter.ParamType.STRING) // Guaranteed to appear in the list passed in the action
-                    .WithParameter("true/false", 's', Parameter.ParamType.BOOLEAN, true) // Might show up
+                .Append(new Command("admin")                                                                                    // Give or revoke administrator privileges for a certain user
+                    .WithParameter("username", 'u', Parameter.ParamType.STRING)             // Guaranteed to appear in the list passed in the action
+                    .WithParameter("true/false", 's', Parameter.ParamType.BOOLEAN, true)    // Might show up
                     .SetAction(
                         (c, l) =>
                         {
@@ -497,12 +512,13 @@ Use command 'help' to get a list of available commands";
                     Output.Error("Unknown command. Enter 'help' for a list of supported commands.", true, false);
             }
 
+            // Stop the server (obviously)
             server.StopRunning();
         }
 
-        // Handles unexpected console close events
+        // Handles unexpected console close events (kernel event hook for window close event)
         private delegate bool EventHandler(int eventType);
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll")]
         private static extern bool SetConsoleCtrlHandler(EventHandler callback, bool add);
     }
 }

@@ -26,7 +26,7 @@ namespace Client
         {
             get
             {
-                if (loginTimeout >= DateTime.Now.Ticks) loginTimeout = -1;
+                if (loginTimeout <= DateTime.Now.Ticks) loginTimeout = -1;
                 return loginTimeout != -1;
             }
         }
@@ -131,7 +131,7 @@ namespace Client
                 bool b = !p.Value.StartsWith("ERROR");
                 if (b) // Set proper state before notifying listener
                 {
-                    loginTimeout = 280 * TimeSpan.TicksPerSecond;
+                    RefreshTimeout();
                     sessionID = p.Value;
                 }
                 PostPromise(p.handler, b);
@@ -147,10 +147,7 @@ namespace Client
             {
                 bool noerror = !p.Value.StartsWith("ERROR");
                 if (noerror) // Set proper state before notifying listener
-                {
-                    loginTimeout = 280 * TimeSpan.TicksPerSecond;
-                    sessionID = p.Value;
-                }
+                    RefreshTimeout();
                 PostPromise(p.handler, noerror);
                 return false;
             });
@@ -203,7 +200,12 @@ namespace Client
         {
             await StatusCheck(true);
             client.Send(CreateCommandMessage("Account_Create", DataSet(sessionID, accountName), out long PID));
-            return RegisterEventPromise(PID, RefreshSession);
+            return RegisterEventPromise(PID, p =>
+            {
+                RefreshSession(p);
+                PostPromise(p.handler, !p.Value.StartsWith("ERROR"));
+                return false;
+            });
         }
 
         public async virtual Task<Promise> CheckIdentity(RSA check, ushort nonce)
@@ -249,7 +251,7 @@ namespace Client
                 bool b = !p.Value.StartsWith("ERROR");
                 if (b) // Set proper state before notifying listener
                 {
-                    loginTimeout = 280 * TimeSpan.TicksPerSecond;
+                    RefreshTimeout();
                     sessionID = p.Value;
                 }
                 PostPromise(p.handler, b);
@@ -350,6 +352,12 @@ namespace Client
         protected void RefreshTimeout() => loginTimeout = 280 * TimeSpan.TicksPerSecond + DateTime.Now.Ticks;
         protected string CreateCommandMessage(string command, string message, out long promiseID) => command + ":" + (promiseID = GetNewPromiseUID()) + ":" + message;
         protected static string DataSet(params dynamic[] data)
+        {
+            string[] data1 = new string[data.Length];
+            for (int i = 0; i < data.Length; ++i) data1[i] = data[i] == null ? "null" : data[i].ToString();
+            return DataSet(data1);
+        }
+        protected static string DataSet(params string[] data)
         {
             StringBuilder builder = new StringBuilder();
             foreach (var datum in data)

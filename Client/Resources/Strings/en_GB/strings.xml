@@ -20,7 +20,7 @@ To go back, press [ESCAPE]</Entry>
 	<Entry name="SU_reg">Register Account</Entry>
 	<Entry name="SU_regstall">Registering...</Entry>
 	<Entry name="SU_dup">An account with this username already exists!</Entry>
-	<Entry name="SU_mismatch">The entered passwords don't match! </Entry>
+	<Entry name="SU_mismatch">The entered passwords don't match!</Entry>
 	<Entry name="SU_weak">The password you have supplied has been deemed to be weak. Are you sure you want to continue?</Entry>
 	<Entry name="SU_login">Log in</Entry>
 	<Entry name="SU_authstall">Authenticating...</Entry>
@@ -44,17 +44,24 @@ To go back, press [ESCAPE]</Entry>
     <Entry name="SE_open">Open an account</Entry>
     <Entry name="SE_close">Close an account</Entry>
     <Entry name="SE_accounts">Show accounts</Entry>
-    <Entry name="SE_info">$0
-Balance: $1
-Date of creation: $2</Entry>
+    <Entry name="SE_info">Name: $0
+Balance: $1</Entry>
 	<Entry name="SE_autolo">You were automatically logged out due to inactivity</Entry>
 	<Entry name="SE_lo">Logged out</Entry>
+	<Entry name="SE_updatestall">Updating password...</Entry>
+	<Entry name="SE_account_name">Account name:</Entry>
+	<Entry name="SE_account_create">Create a new account</Entry>
+	<Entry name="SE_account_stall">Creating account...</Entry>
+	<Entry name="SE_account_exists">Account "$0" already exists!</Entry>
+	<Entry name="SE_account_success">Account successfully created!</Entry>
+	<Entry name="SE_exit_prompt">Are you sure you would like log out and exit?</Entry>
 
 	<Entry name="GENERIC_fetch">Fetching data...</Entry>
 	<Entry name="GENERIC_dismiss">Close</Entry>
 	<Entry name="GENERIC_accept">Ok</Entry>
 	<Entry name="GENERIC_positive">Yes</Entry>
 	<Entry name="GENERIC_negative">No</Entry>
+	<Entry name="GENERIC_error">An unknown error occurred!</Entry>
 
 	<Entry name="ERR_empty">One of more required field was empty!</Entry>
 </Strings>

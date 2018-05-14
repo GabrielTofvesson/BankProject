@@ -156,7 +156,12 @@ namespace Tofvesson.Net
 
             public bool Update()
             {
-                bool stop = client.SyncListener(ref hasCrypto, ref expectedSize, out bool read, buffer, buf);
+                bool stop = true;
+                try
+                {
+                    stop = client.SyncListener(ref hasCrypto, ref expectedSize, out bool read, buffer, buf);
+                }
+                catch { }
                 return stop;
             }
             public bool IsConnected() => client.IsConnected;

@@ -21,8 +21,8 @@ namespace Client.ConsoleForms.Graphics
         public static LayoutMeta Centering(View view) => new LayoutMeta(
             (w, h) =>
             new Tuple<int, int>(
-                SpaceMaths.CenterPad(Console.WindowWidth, view.ContentWidth).Item1,
-                SpaceMaths.CenterPad(Console.WindowHeight, view.ContentHeight + 1).Item1
+                SpaceMaths.CenterPad(Console.WindowWidth, view.ContentWidth + view.padding.Left() + view.padding.Right()).Item1,
+                SpaceMaths.CenterPad(Console.WindowHeight, view.ContentHeight + view.padding.Top() + view.padding.Bottom() + 1).Item1
                 )
             );
     }

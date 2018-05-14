@@ -11,7 +11,7 @@ namespace Client.ConsoleForms
 {
     public sealed class LangManager
     {
-        private const string MAPPING_PREFIX = "@string/";
+        public const string MAPPING_PREFIX = "@string/";
 
         public static readonly LangManager NO_LANG = new LangManager(true);
 

@@ -44,17 +44,24 @@ För att backa, tryck [ESCAPE]</Entry>
     <Entry name="SE_open">Öppna ett konto</Entry>
     <Entry name="SE_close">Stäng ett konto</Entry>
     <Entry name="SE_accounts">Visa konton</Entry>
-    <Entry name="SE_info">"$0"
-Kontobalans: $1
-Begynnelsedatum: $2</Entry>
+    <Entry name="SE_info">Namn: $0
+Kontobalans: $1</Entry>
 	<Entry name="SE_autolo">Du har automatiskt loggats ut p.g.a. inaktivitet</Entry>
 	<Entry name="SE_lo">Utloggad</Entry>
+	<Entry name="SE_updatestall">Uppdaterar lösenord...</Entry>
+	<Entry name="SE_account_name">Kontonamn:</Entry>
+	<Entry name="SE_account_create">Skapa nytt konto</Entry>
+	<Entry name="SE_account_stall">Skapar konto...</Entry>
+	<Entry name="SE_account_exists">Kontot "$0" finns redan!</Entry>
+	<Entry name="SE_account_success">Konto skapat!</Entry>
+	<Entry name="SE_exit_prompt">Är du säker på att du vill logga ut och stänga?</Entry>
 
 	<Entry name="GENERIC_fetch">Hämtar data...</Entry>
 	<Entry name="GENERIC_dismiss">Stäng</Entry>
 	<Entry name="GENERIC_accept">Ok</Entry>
 	<Entry name="GENERIC_positive">Ja</Entry>
 	<Entry name="GENERIC_negative">Nej</Entry>
+	<Entry name="GENERIC_error">Ett oväntat fel uppstod!</Entry>
 
 	<Entry name="ERR_empty">Ett eller flera obligatoriska inputfält är tomma!</Entry>
 </Strings>

@@ -19,6 +19,7 @@ namespace Client.ConsoleForms.Graphics
         public override bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus)
         {
             bool b = inFocus && info.ValidEvent && info.Event.Key == ConsoleKey.Enter;
+            base.HandleKeyEvent(info, inFocus);
             if (b) evt?.Invoke(this);
             return b;
         }

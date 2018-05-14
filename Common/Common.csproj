@@ -74,6 +74,7 @@
     <Compile Include="Cryptography\KeyExchange\EllipticDiffieHellman.cs" />
     <Compile Include="Cryptography\KeyExchange\IKeyExchange.cs" />
     <Compile Include="Cryptography\Point.cs" />
+    <Compile Include="FixedQueue.cs" />
     <Compile Include="KDF.cs" />
     <Compile Include="NetClient.cs" />
     <Compile Include="NetServer.cs" />

@@ -21,8 +21,16 @@ namespace Client.ConsoleForms.Graphics
             get => select;
             set => select = value < 0 ? 0 : value >= options.Length ? options.Length - 1 : value;
         }
-        public override Region Occlusion => new Region(new Rectangle(-1, -1, ContentWidth + 4, ContentHeight + 2));
-
+        /*
+        public override Region Occlusion => new Region(
+            new Rectangle(
+                -padding.Left() - (DrawBorder ? 2 : 0),                 // Left bound
+                -padding.Top() - (DrawBorder ? 1 : 0),                  // Top bound
+                ContentWidth + padding.Right() + (DrawBorder ? 2 : 0),  // Right bound
+                ContentHeight + padding.Bottom() + (DrawBorder ? 1 : 0) // Bottom bound
+                )
+            );
+            */
         public ConsoleColor SelectColor { get; set; }
         public ConsoleColor NotSelectColor { get; set; }
         public string[] Options { get => options.Transform(d => d.InnerText); }
@@ -47,11 +55,11 @@ namespace Client.ConsoleForms.Graphics
 
         protected override void _Draw(int left, ref int top)
         {
-            DrawEmptyPadding(left, ref top, padding.Top());
+            //DrawEmptyPadding(left, ref top, padding.Top());
             base.DrawContent(left, ref top);
             DrawEmptyPadding(left, ref top, 1);
             DrawOptions(left, ref top);
-            DrawEmptyPadding(left, ref top, padding.Bottom());
+            //DrawEmptyPadding(left, ref top, padding.Bottom());
         }
 
         protected virtual void DrawOptions(int left, ref int top)
@@ -59,7 +67,7 @@ namespace Client.ConsoleForms.Graphics
             int pl = padding.Left(), pr = padding.Right();
             Console.SetCursorPosition(left, top++);
 
-            int pad = MaxWidth - options.CollectiveLength() - options.Length + pl + pr;
+            int pad = MaxWidth - options.CollectiveLength() - options.Length;// + pl + pr;
             int lpad = (int)(pad / 2f);
             Console.BackgroundColor = BackgroundColor;
             Console.Write(Filler(' ', lpad));
@@ -78,6 +86,7 @@ namespace Client.ConsoleForms.Graphics
             bool changed = base.HandleKeyEvent(evt, inFocus);
             ConsoleKeyInfo info = evt.Event;
             if (!evt.ValidEvent || !inFocus) return changed;
+            evt.ValidEvent = false; // Invalidate event
             switch (info.Key)
             {
                 case ConsoleKey.LeftArrow:

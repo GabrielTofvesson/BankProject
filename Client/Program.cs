@@ -55,7 +55,7 @@ namespace ConsoleForms
                     b = manager.Update(info, haskey);
                     controller.Draw();
                 }
-            } while (!info.ValidEvent ||  info.Event.Key != ConsoleKey.Escape);
+            } while ((!info.ValidEvent ||  info.Event.Key != ConsoleKey.Escape) && !controller.ShouldExit);
         }
 
         // Detects if a key has been hit without blocking

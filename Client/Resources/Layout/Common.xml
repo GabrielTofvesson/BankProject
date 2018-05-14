@@ -28,6 +28,6 @@
     padding_right="2"
     padding_top="1"
     padding_bottom="1">
-    <Text>@string/GENERiC_fetch</Text>
+    <Text>@string/GENERIC_fetch</Text>
   </TextView>
 </Resources>

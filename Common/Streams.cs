@@ -10,7 +10,6 @@ namespace Tofvesson.Common
 {
     public sealed class TimeStampWriter : TextWriter
     {
-        private readonly DateTime time = DateTime.Now;
         private readonly string dateFormat;
         private readonly TextWriter underlying;
         private bool triggered;
@@ -36,7 +35,7 @@ namespace Tofvesson.Common
             if (triggered)
             {
                 StringBuilder s = new StringBuilder();
-                s.Append('[').Append(time.ToString(dateFormat)).Append("] ");
+                s.Append('[').Append(DateTime.Now.ToString(dateFormat)).Append("] ");
                 foreach (var c in s.ToString()) underlying.Write(c); 
             }
             underlying.Write(value);

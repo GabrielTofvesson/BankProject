@@ -43,6 +43,7 @@ namespace Client.ConsoleForms
                 return false;
             }
         }
+        public bool ShouldExit { get; set; }
 
         private ConsoleController(bool resizeListener = true)
         {
@@ -143,7 +144,7 @@ namespace Client.ConsoleForms
         public KeyEvent ReadKey(bool redrawOnDirty = true)
         {
             KeyEvent keyInfo = new KeyEvent(Console.ReadKey(true));
-            int lowestDirty = -1;
+            int lowestDirty = renderQueue.Count;
             int count = renderQueue.Count - 1;
             for (int i = count; i >= 0; --i)
                 if (renderQueue[i].Item1.HandleKeyEvent(keyInfo, i == count))
@@ -216,7 +217,7 @@ namespace Client.ConsoleForms
         {
             Console.BackgroundColor = clearColor;
             Console.ForegroundColor = ConsoleColor.White;
-            for (int i = rect.Top; i <= rect.Bottom; ++i)
+            for (int i = rect.Top; i < rect.Bottom; ++i)
             {
                 Console.SetCursorPosition(rect.Left, i);
                 for (int j = rect.Right - rect.Left; j > 0; --j)

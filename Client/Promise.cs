@@ -31,5 +31,7 @@ namespace Client
             p.Wait();
             return p.Result;
         }
+
+        public void Unsubscribe() => evt = null;
     }
 }

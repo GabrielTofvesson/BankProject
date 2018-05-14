@@ -14,6 +14,8 @@ namespace Client.ConsoleForms.Graphics
         protected string[] text_render;
         protected int maxWidth, maxHeight;
 
+        public string Text { get; }
+
         public int MaxWidth
         {
             get => maxWidth;
@@ -36,7 +38,14 @@ namespace Client.ConsoleForms.Graphics
                 Dirty = true;
             }
         }
-        public override Region Occlusion => new Region(new Rectangle(DrawBorder ? -1 : 0, DrawBorder ? -1 : 0, ContentWidth + (DrawBorder ? 3 : 0), ContentHeight));
+        public override Region Occlusion => new Region(
+            new Rectangle(
+                -padding.Left() - (DrawBorder ? 2 : 0),                 // Left bound
+                -padding.Top() - (DrawBorder ? 1 : 0),                  // Top bound
+                ContentWidth + padding.Right() + padding.Left() + (DrawBorder ? 2 : 0),  // Right bound
+                ContentHeight + padding.Bottom() + padding.Top() + (DrawBorder ? 1 : 0) // Bottom bound
+                )
+            );
 
         //public char Border { get; set; }
         //public ConsoleColor BorderColor { get; set; }
@@ -46,7 +55,7 @@ namespace Client.ConsoleForms.Graphics
             //BorderColor = (ConsoleColor) parameters.AttribueAsInt("border", (int)ConsoleColor.Blue);
 
             Border = ' ';
-            this.text = parameters.NestedText("Text").Split(' ');
+            this.text = (Text = parameters.NestedText("Text")).Split(' ');
             int widest = 0;
             foreach (var t in parameters.NestedText("Text").Split('\n'))
                 if (t.Length > widest)
@@ -58,8 +67,8 @@ namespace Client.ConsoleForms.Graphics
             text_render = ComputeTextDimensions(this.text);
             int actualWidth = 0;
             foreach (var t in text_render) if (actualWidth < t.Length) actualWidth = t.Length;
-            ContentWidth = maxWidth + padding.Left() + padding.Right();
-            ContentHeight = text_render.Length + padding.Top() + padding.Bottom();
+            ContentWidth = maxWidth;// + padding.Left() + padding.Right();
+            ContentHeight = text_render.Length;// + padding.Top() + padding.Bottom();
         }
 
         protected virtual string[] ComputeTextDimensions(string[] text)
@@ -149,9 +158,9 @@ namespace Client.ConsoleForms.Graphics
 
         protected override void _Draw(int left, ref int top)
         {
-            DrawEmptyPadding(left, ref top, padding.Top());
+            //DrawEmptyPadding(left, ref top, padding.Top());
             DrawContent(left, ref top);
-            DrawEmptyPadding(left, ref top, padding.Bottom());
+            //DrawEmptyPadding(left, ref top, padding.Bottom());
         }
 
         protected void DrawContent(int left, ref int top)
@@ -162,21 +171,20 @@ namespace Client.ConsoleForms.Graphics
             for (int i = 0; i < text_render.Length; ++i)
             {
                 Console.SetCursorPosition(left, top++);
-                Console.Write(Filler(' ', pl) + text_render[i] + Filler(' ', MaxWidth - text_render[i].Length) + Filler(' ', pr));
+                Console.Write(/*Filler(' ', pl) + */text_render[i] + Filler(' ', MaxWidth - text_render[i].Length)/* + Filler(' ', pr)*/);
             }
         }
 
+        
         protected void DrawEmptyPadding(int left, ref int top, int padHeight)
         {
-            int pl = padding.Left(), pr = padding.Right();
+            //int pl = padding.Left(), pr = padding.Right();
             for (int i = padHeight; i > 0; --i)
             {
                 Console.SetCursorPosition(left, top++);
                 Console.BackgroundColor = BackgroundColor;
-                Console.Write(Filler(' ', maxWidth + pl + pr));
+                Console.Write(Filler(' ', maxWidth/* + pl + pr*/));
             }
         }
-
-        public override bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus) => base.HandleKeyEvent(info, inFocus);
     }
 }

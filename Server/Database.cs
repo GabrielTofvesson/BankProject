@@ -506,7 +506,7 @@ namespace Server
                     .Append('&')
                     .Append(tx.amount.ToString());
                     if (tx.meta != null) builder.Append('&').Append(tx.meta.ToBase64String());
-                    builder.Append('}');
+                    //builder.Append('}');
                 }
                 return builder.ToString();
             }
@@ -531,7 +531,7 @@ namespace Server
                 this.IsAdministrator = copy.IsAdministrator;
                 this.PasswordHash = copy.PasswordHash;
                 this.Salt = copy.Salt;
-                accounts.AddRange(copy.accounts);
+                foreach (var acc in copy.accounts) accounts.Add(new Account(acc));
             }
 
             public User(string name, string passHash, string salt, bool generatePass = false, bool admin = false)
