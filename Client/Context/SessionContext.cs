@@ -148,6 +148,26 @@ namespace Client
                 };
             };
 
+            options.GetView<ButtonView>("delete").SetEvent(v => Show("account_delete"));
+
+            GetView<DialogView>("account_delete").RegisterSelectListener((v, i, s) =>
+            {
+                Hide(v);
+                if (i == 1)
+                {
+                    Show("delete_stall");
+                    Promise deletion = Promise.AwaitPromise(interactor.DeleteUser());
+                    deletion.Subscribe = p =>
+                    {
+                        Hide("delete_stall");
+                        if (bool.Parse(p.Value))
+                            controller.Popup(GetIntlString("SE_delete_success"), 2500, ConsoleColor.Green, () => manager.LoadContext(new NetContext(manager)));
+                        else
+                            controller.Popup(GetIntlString("SE_delete_failure"), 1500, ConsoleColor.Red);
+                    };
+                }
+            });
+
             // Actual "create account" input box thingy
             var input = GetView<InputView>("account_create");
             input.SubmissionsListener = __ =>

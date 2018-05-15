@@ -67,7 +67,7 @@ namespace Client.ConsoleForms.Graphics
             int pl = padding.Left(), pr = padding.Right();
             Console.SetCursorPosition(left, top++);
 
-            int pad = MaxWidth - options.CollectiveLength() - options.Length;// + pl + pr;
+            int pad = ContentWidth - options.CollectiveLength() - options.Length;// + pl + pr;
             int lpad = (int)(pad / 2f);
             Console.BackgroundColor = BackgroundColor;
             Console.Write(Filler(' ', lpad));

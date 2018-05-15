@@ -84,7 +84,7 @@ För att backa, tryck [ESCAPE]</Entry>
 	<Entry name="SE_hist">Transaktionshistorik</Entry>
 	<Entry name="SE_tx">Överför pengar</Entry>
 	<Entry name="SE_tx_success">Belopp överfört!</Entry>
-	<Entry name="SE_who">Skicka till</Entry>
+	<Entry name="SE_who">Skicka till:</Entry>
 	<Entry name="SE_where">Konto</Entry>
 	<Entry name="SE_where_f">Från konto:</Entry>
 	<Entry name="SE_where_t">Till konto:</Entry>
@@ -103,6 +103,13 @@ Till kontot: $2
     <Entry name="SE_exit">Logga ut</Entry>
     <Entry name="SE_open">Öppna ett konto</Entry>
     <Entry name="SE_close">Stäng konto</Entry>
+    <Entry name="SE_delete">Radera användare</Entry>
+    <Entry name="SE_delete_warn">VARNING: Detta kommer att radera den nuvarande användaren
+och alla kopplade konton!
+Vill du fortsätta?</Entry>
+	<Entry name="SE_delete_stall">Raderar...</Entry>
+	<Entry name="SE_delete_success">Användare raderad</Entry>
+	<Entry name="SE_delete_failure">Användare kunde inte raderas</Entry>
     <Entry name="SE_accounts">Visa konton</Entry>
     <Entry name="SE_balance_toohigh">Angivet belopp är högre än det tillgängliga beloppet i ursprungskontot!
 Tillgängligt saldo: $0 SEK</Entry>

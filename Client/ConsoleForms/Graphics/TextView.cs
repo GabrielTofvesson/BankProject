@@ -32,29 +32,7 @@ namespace Client.ConsoleForms.Graphics
                 Dirty = true;
             }
         }
-
-        public int MaxWidth
-        {
-            get => maxWidth;
-
-            set
-            {
-                maxWidth = value;
-                text_render = ComputeTextDimensions(text);
-                Dirty = true;
-            }
-        }
-        public int MaxHeight
-        {
-            get => maxHeight;
-
-            set
-            {
-                maxHeight = value;
-                text_render = ComputeTextDimensions(text);
-                Dirty = true;
-            }
-        }
+        
         public override Region Occlusion => new Region(
             new Rectangle(
                 -padding.Left() - (DrawBorder ? 2 : 0),                 // Left bound
@@ -231,7 +209,7 @@ namespace Client.ConsoleForms.Graphics
             for (int i = 0; i < text_render.Length; ++i)
             {
                 Console.SetCursorPosition(left, top++);
-                Console.Write(/*Filler(' ', pl) + */text_render[i] + Filler(' ', MaxWidth - text_render[i].Length)/* + Filler(' ', pr)*/);
+                Console.Write(/*Filler(' ', pl) + */text_render[i] + Filler(' ', ContentWidth - text_render[i].Length)/* + Filler(' ', pr)*/);
             }
         }
 
@@ -243,7 +221,7 @@ namespace Client.ConsoleForms.Graphics
             {
                 Console.SetCursorPosition(left, top++);
                 Console.BackgroundColor = BackgroundColor;
-                Console.Write(Filler(' ', maxWidth/* + pl + pr*/));
+                Console.Write(Filler(' ', ContentWidth/* + pl + pr*/));
             }
         }
     }

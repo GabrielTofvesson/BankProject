@@ -139,6 +139,17 @@ namespace Client
             });
         }
 
+        public async virtual Task<Promise> DeleteUser()
+        {
+            await StatusCheck(true);
+            client.Send(CreateCommandMessage("RmUsr", sessionID, out var pID));
+            return RegisterEventPromise(pID, p =>
+            {
+                PostPromise(p.handler, !p.Value.StartsWith("ERROR"));
+                return false;
+            });
+        }
+
         public async virtual Task<Promise> UpdatePassword(string newPass)
         {
             await StatusCheck(true);

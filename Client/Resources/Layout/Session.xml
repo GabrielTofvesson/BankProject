@@ -90,11 +90,36 @@
         <Text>@string/SE_pwdu</Text>
       </ButtonView>
     
+      <ButtonView id="delete">
+        <Text>@string/SE_delete</Text>
+      </ButtonView>
+
       <ButtonView id="exit">
         <Text>@string/SE_exit</Text>
       </ButtonView>
     </Views>
   </ListView>
+
+  <TextView id="delete_stall"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Text>@string/SE_delete_stall</Text>
+  </TextView>
+
+  <DialogView id="account_delete"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1"
+    border="4">
+    <Options>
+      <Option>@string/GENERIC_negative</Option>
+      <Option>@string/GENERIC_positive</Option>
+    </Options>
+    <Text>@string/SE_delete_warn</Text>
+  </DialogView>
 
   <InputView id="account_create"
     padding_left="2"

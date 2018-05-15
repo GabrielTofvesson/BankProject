@@ -147,11 +147,23 @@ Use command 'help' to get a list of available commands";
                     // Server endpoints
                     switch (cmd[0])
                     {
+                        case "RmUsr":
+                            {
+                                if (!GetUser(cmd[1], out var user))
+                                {
+                                    if(verbosity > 0) Output.Error($"Could not delete user from session as session isn't valid. (SessionID=\"{cmd[1]}\")");
+                                    return ErrorResponse(id, "badsession");
+                                }
+                                manager.Expire(user);
+                                db.RemoveUser(user);
+                                if (verbosity > 0) Output.Info($"Removed user \"{user.Name}\" (SessionID={cmd[1]})");
+                                return GenerateResponse(id, true);
+                            }
                         case "Auth": // Log in to a user account (get a session id)
                             {
                                 if(!ParseDataPair(cmd[1], out string user, out string pass))
                                 {
-                                    Output.Error($"Recieved problematic username or password! (User: \"{user}\")");
+                                    if(verbosity > 0) Output.Error($"Recieved problematic username or password! (User: \"{user}\")");
                                     return ErrorResponse(id);
                                 }
                                 Database.User usr = db.GetUser(user);
@@ -447,7 +459,9 @@ Use command 'help' to get a list of available commands";
                     }
                     Output.Raw($"Current verbosity level: {(verbosity<1?"FATAL":verbosity==1?"INFO":"DEBUG")}");
                 }), "Get or set verbosity level: DEBUG, INFO, FATAL (alternatively enter 0, 1 or 2 respectively)")
-                .Append(new Command("sess").WithParameter("sessionID", 'r', Parameter.ParamType.STRING, true).SetAction(        // Display active sessions
+                .Append(new Command("sess")                                                                                     // Display active sessions
+                .WithParameter("sessionID", 'r', Parameter.ParamType.STRING, true)
+                .SetAction(
                     (c, l) => {
                         StringBuilder builder = new StringBuilder();
                         manager.Update(); // Ensure that we don't show expired sessions (artifacts exist until it is necessary to remove them)
@@ -498,7 +512,8 @@ Use command 'help' to get a list of available commands";
                                 db.AddUser(user);
                             }
                             else Output.Raw(user.IsAdministrator);
-                        }), "Show or set admin status for a user");
+                        }), "Show or set admin status for a user")
+                .Append(new Command("flush").SetAction(() => { db.Flush(); Output.Raw("Database flushed"); }), "Flush database");// Flush database to database file
 
             // Set up a persistent terminal-esque input design
             Output.OnNewLine = () => Output.WriteOverwritable(">> ");

@@ -139,7 +139,7 @@ namespace Client.ConsoleForms.Graphics
         }
         protected EventAction ParseAction(ViewData data)
         {
-            bool.TryParse(data.GetAttribute("close"), out bool close);
+            bool.TryParse(data?.GetAttribute("close")??"", out bool close);
             return ParseAction(data.GetAttribute("event"), close);
         }
         protected EventAction ParseAction(string action, bool close)

@@ -73,17 +73,19 @@ namespace Server
         public void RemoveUser(User entry) => RemoveUser(entry, true);
         private void RemoveUser(User entry, bool withFlush)
         {
-            entry = ToEncoded(entry);
+            // Remove from loaded users collection
             for (int i = 0; i < loadedUsers.Count; ++i)
-                if (entry.Equals(loadedUsers[i]))
+                if (entry.Name.Equals(loadedUsers[i].Name))
                     loadedUsers.RemoveAt(i);
 
+            // Changes are retracted from change collectino
             for (int i = changeList.Count - 1; i >= 0; --i)
-                if (changeList[i].Equals(entry.Name))
+                if (changeList[i].Name.Equals(entry.Name))
                     changeList.RemoveAt(i);
 
+            // Check if user already is scheduled for deletion
             for (int i = toRemove.Count - 1; i >= 0; --i)
-                if (toRemove[i].Equals(entry.Name))
+                if (toRemove[i].Name.Equals(entry.Name))
                     return;
 
             toRemove.Add(entry);
@@ -104,9 +106,10 @@ namespace Server
                 using(var reader = XmlReader.Create(DatabaseName))
                 {
                     int masterDepth = 0;
-                    bool trigger = false, wn = false, recent = false;
-                    while (wn || reader.Read())
+                    bool trigger = false, wn = false, recent = false, justTriggered = false;
+                    while (wn || reader.Read() || (reader.NodeType==XmlNodeType.None && justTriggered))
                     {
+                        justTriggered = false;
                         wn = false;
                         if (trigger)
                         {
@@ -114,7 +117,7 @@ namespace Server
                                 WriteUser(writer, user);
 
                             bool wroteNode = false;
-                            while ((wroteNode || reader.Name.Equals("User") || reader.Read()) && reader.NodeType != XmlNodeType.EndElement)
+                            while ((wroteNode || reader.Name.Equals("User") || reader.Read()) && reader.NodeType != XmlNodeType.EndElement && reader.NodeType != XmlNodeType.None)
                             {
                                 wroteNode = false;
                                 if (reader.Name.Equals("User"))
@@ -154,6 +157,7 @@ namespace Server
                         if (masterDepth != MasterEntry.Length && reader.Name.Equals(MasterEntry[masterDepth]))
                         {
                             trigger = reader.NodeType == XmlNodeType.Element && ++masterDepth == MasterEntry.Length;
+                            justTriggered = true;
                             reader.MoveToContent();
                             writer.WriteStartElement(MasterEntry[masterDepth - 1]);
                         }
@@ -241,10 +245,18 @@ namespace Server
         public User FirstUser(Predicate<User> p)
         {
             if (p == null) return null; // Done to conveniently handle system insertions
+
+            // Check if user is scheduled for removal
+            foreach (var entry in toRemove)
+                if (p(entry))
+                    return null;
+
+            // Check loaded users
             foreach (var entry in loadedUsers)
                 if (p(entry))
                     return entry;
 
+            // Check modified users
             foreach (var entry in changeList)
                 if (p(entry))
                 {
@@ -252,6 +264,7 @@ namespace Server
                     return entry;
                 }
 
+            // Read from database
             using (var reader = XmlReader.Create(DatabaseName))
             {
                 if (!Traverse(reader, MasterEntry)) return null;

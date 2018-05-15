@@ -32,6 +32,7 @@ namespace Client.ConsoleForms.Graphics
             }
         }
         private string[][] splitInputs;
+        protected ViewData data;
 
 
         public InputView(ViewData parameters, LangManager lang) : base(parameters, lang)
@@ -46,6 +47,8 @@ namespace Client.ConsoleForms.Graphics
             DefaultTextColor = (ConsoleColor)TC;
             DefaultSelectBackgroundColor = (ConsoleColor)sBC;
             DefaultSelectTextColor = (ConsoleColor)sTC;
+
+            this.data = parameters;
 
             List<InputField> fields = new List<InputField>();
             foreach (var data in parameters.nestedData.GetFirst(d => d.Name.Equals("Fields")).nestedData)
@@ -63,14 +66,19 @@ namespace Client.ConsoleForms.Graphics
 
             Inputs = fields.ToArray();
 
+            int max = ContentWidth;
             int computedSize = 0;
             splitInputs = new string[Inputs.Length][];
             for (int i = 0; i < Inputs.Length; ++i)
             {
                 splitInputs[i] = ComputeTextDimensions(Inputs[i].Label.Split(' '));
+                foreach (var input in splitInputs[i])
+                    if (input.Length > max)
+                        max = input.Length;
                 computedSize += splitInputs[i].Length;
             }
             ContentHeight += computedSize + Inputs.Length * 2;
+            if (ContentWidth < max) ContentWidth = max;
         }
 
         public int IndexOf(InputField field)
@@ -98,7 +106,7 @@ namespace Client.ConsoleForms.Graphics
                 {
                     Console.SetCursorPosition(left, top++);
                     Console.BackgroundColor = BackgroundColor;
-                    Console.Write(splitInputs[j][i] + Filler(' ', MaxWidth - splitInputs[j][i].Length));
+                    Console.Write(splitInputs[j][i] + Filler(' ', ContentWidth - splitInputs[j][i].Length));
                 }
                 Console.SetCursorPosition(left, top++);
                 
@@ -114,10 +122,10 @@ namespace Client.ConsoleForms.Graphics
                 if (Inputs[j].SelectIndex < Inputs[j].Text.Length)
                     Console.Write(
                         Inputs[j].ShowText ?
-                        Inputs[j].Text.Substring(Inputs[j].SelectIndex + 1, drawn = Math.Min(maxWidth + Inputs[j].SelectIndex - Inputs[j].RenderStart - 1, Inputs[j].Text.Length - Inputs[j].SelectIndex - 1)) :
-                        Filler('*', drawn = Math.Min(maxWidth + Inputs[j].SelectIndex - Inputs[j].RenderStart - 1, Inputs[j].Text.Length - Inputs[j].SelectIndex - 1))
+                        Inputs[j].Text.Substring(Inputs[j].SelectIndex + 1, drawn = Math.Min(ContentWidth + Inputs[j].SelectIndex - Inputs[j].RenderStart - 1, Inputs[j].Text.Length - Inputs[j].SelectIndex - 1)) :
+                        Filler('*', drawn = Math.Min(ContentWidth + Inputs[j].SelectIndex - Inputs[j].RenderStart - 1, Inputs[j].Text.Length - Inputs[j].SelectIndex - 1))
                         );
-                Console.Write(Filler(' ', maxWidth - 1 - drawn - Inputs[j].SelectIndex + Inputs[j].RenderStart));
+                Console.Write(Filler(' ', ContentWidth - 1 - drawn - Inputs[j].SelectIndex + Inputs[j].RenderStart));
                 Console.ForegroundColor = ConsoleColor.Black;
             }
         }
@@ -140,7 +148,7 @@ namespace Client.ConsoleForms.Graphics
                 case ConsoleKey.RightArrow:
                     if (Inputs[selectedField].SelectIndex < Inputs[selectedField].Text.Length)
                     {
-                        if (++Inputs[selectedField].SelectIndex - Inputs[selectedField].RenderStart == maxWidth) ++Inputs[selectedField].RenderStart;
+                        if (++Inputs[selectedField].SelectIndex - Inputs[selectedField].RenderStart == ContentWidth) ++Inputs[selectedField].RenderStart;
                     }
                     else return changed;
                     break;
@@ -175,6 +183,7 @@ namespace Client.ConsoleForms.Graphics
                     else return changed;
                     break;
                 case ConsoleKey.Enter:
+                    ParseAction(data)();
                     SubmissionsListener?.Invoke(this);
                     return changed;
                 case ConsoleKey.Escape:
@@ -184,7 +193,7 @@ namespace Client.ConsoleForms.Graphics
                     {
                         if (InputListener?.Invoke(this, Inputs[selectedField], info, triggered) == false) break;
                         Inputs[selectedField].Text = Inputs[selectedField].Text.Substring(0, Inputs[selectedField].SelectIndex) + info.KeyChar + Inputs[selectedField].Text.Substring(Inputs[selectedField].SelectIndex);
-                        if (++Inputs[selectedField].SelectIndex - Inputs[selectedField].RenderStart == maxWidth) ++Inputs[selectedField].RenderStart;
+                        if (++Inputs[selectedField].SelectIndex - Inputs[selectedField].RenderStart == ContentWidth) ++Inputs[selectedField].RenderStart;
                     }
                     else return changed;
                     break;
