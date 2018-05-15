@@ -317,28 +317,18 @@ namespace Server
         public User[] Users(Predicate<User> p)
         {
             List<User> l = new List<User>();
+
+            // Get changed users
             foreach (var entry in changeList)
                 if (p(entry))
                     l.Add(entry);
 
+            // Get loaded users
             foreach(var entry in loadedUsers)
                 if (!l.Contains(entry) && p(entry))
                     l.Add(entry);
 
-            /*
-            using (var reader = XmlReader.Create(DatabaseName))
-            {
-                if (!Traverse(reader, MasterEntry)) return null;
-                
-                while (((reader.NodeType==XmlNodeType.Element && reader.Name.Equals("User")) || SkipSpaces(reader)) && reader.NodeType != XmlNodeType.EndElement)
-                {
-                    if (reader.NodeType == XmlNodeType.EndElement) break;
-                    User e = User.Parse(ReadEntry(reader), this);
-                    if (e!=null && !l.Contains(e = FromEncoded(e)) && p(e)) l.Add(e);
-                }
-            }
-            */
-
+            // Get from database
             using (var reader = XmlReader.Create(DatabaseName))
             {
                 if (!Traverse(reader, MasterEntry)) return null;
@@ -354,6 +344,15 @@ namespace Server
                     }
                 }
             }
+
+            // Remove users scheduled for eviction
+            foreach(var user in toRemove)
+                for(int i = l.Count - 1; i>=0; --i)
+                    if (l[i].Name.Equals(user.Name))
+                    {
+                        l.RemoveAt(i);
+                        i = -1;
+                    }
 
             return l.ToArray();
         }
