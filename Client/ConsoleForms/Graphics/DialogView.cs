@@ -81,11 +81,11 @@ namespace Client.ConsoleForms.Graphics
             Console.Write(Filler(' ', pad - lpad));
         }
 
-        public override bool HandleKeyEvent(ConsoleController.KeyEvent evt, bool inFocus)
+        public override bool HandleKeyEvent(ConsoleController.KeyEvent evt, bool inFocus, bool triggered)
         {
-            bool changed = base.HandleKeyEvent(evt, inFocus);
+            bool changed = base.HandleKeyEvent(evt, inFocus, triggered);
             ConsoleKeyInfo info = evt.Event;
-            if (!evt.ValidEvent || !inFocus) return changed;
+            if (!triggered && (!evt.ValidEvent || !inFocus)) return changed;
             evt.ValidEvent = false; // Invalidate event
             switch (info.Key)
             {

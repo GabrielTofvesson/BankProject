@@ -71,7 +71,7 @@ namespace Client
             };
 
             // For a smooth effect
-            GetView<InputView>("Login").InputListener = (v, c, i) =>
+            GetView<InputView>("Login").InputListener = (v, c, i, t) =>
             {
                 c.BackgroundColor = v.DefaultBackgroundColor;
                 c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
@@ -138,7 +138,7 @@ namespace Client
                 else Show("EmptyFieldError");
             };
 
-            GetView<InputView>("Register").InputListener = (v, c, i) =>
+            GetView<InputView>("Register").InputListener = (v, c, i, t) =>
             {
                 c.BackgroundColor = v.DefaultBackgroundColor;
                 c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;

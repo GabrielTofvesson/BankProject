@@ -48,20 +48,25 @@ namespace Tofvesson.Common
         // Indexing for the queue
         public T ElementAt(int index) => queue[(queueStart + index) % queue.Length];
 
+        public virtual void Clear()
+        {
+            while (Count > 0) Dequeue();
+        }
+
         // Enumeration
         public virtual IEnumerator<T> GetEnumerator() => new QueueEnumerator<T>(this);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         // Enumerator for this queue
-        public sealed class QueueEnumerator<T> : IEnumerator<T>
+        public sealed class QueueEnumerator<K> : IEnumerator<K>
         {
             private int offset = -1;
-            private readonly FixedQueue<T> queue;
+            private readonly FixedQueue<K> queue;
 
-            internal QueueEnumerator(FixedQueue<T> queue) => this.queue = queue;
+            internal QueueEnumerator(FixedQueue<K> queue) => this.queue = queue;
 
             object IEnumerator.Current => this.Current;
-            public T Current => offset == -1 ? default(T) : queue.ElementAt(offset); // Get current item or (null) if MoveNext() hasn't been called
+            public K Current => offset == -1 ? default(K) : queue.ElementAt(offset); // Get current item or (null) if MoveNext() hasn't been called
             public void Dispose() { }                                                           // NOP
             public bool MoveNext() => offset < queue.Count && ++offset < queue.Count;         // Increment index tracker (offset)
             public void Reset() => offset = -1;

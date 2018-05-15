@@ -9,7 +9,6 @@ namespace Client
     public class Account
     {
         public decimal balance;
-        string owner;
         public List<Transaction> History { get; }
         public Account(decimal balance)
         {

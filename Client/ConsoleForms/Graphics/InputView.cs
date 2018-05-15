@@ -12,7 +12,7 @@ namespace Client.ConsoleForms.Graphics
     public class InputView : TextView
     {
         public delegate void SubmissionListener(InputView view);
-        public delegate bool TextEnteredListener(InputView view, InputField change, ConsoleKeyInfo info);
+        public delegate bool TextEnteredListener(InputView view, InputField change, ConsoleKeyInfo info, bool triggered);
 
         public SubmissionListener SubmissionsListener { protected get; set; }
         public TextEnteredListener InputListener { protected get; set; }
@@ -53,7 +53,7 @@ namespace Client.ConsoleForms.Graphics
                 else fields.Add(new InputField(data.InnerText, data.AttribueAsInt("max_length", -1))
                 {
                     ShowText = !data.AttribueAsBool("hide", false),
-                    Text = data.GetAttribute("default"),
+                    Text = lang.MapIfExists(data.GetAttribute("default")),
                     InputTypeString = data.GetAttribute("input_type"),
                     TextColor = (ConsoleColor)data.AttribueAsInt("color_text", TC),
                     BackgroundColor = (ConsoleColor)data.AttribueAsInt("color_background", BC),
@@ -71,6 +71,14 @@ namespace Client.ConsoleForms.Graphics
                 computedSize += splitInputs[i].Length;
             }
             ContentHeight += computedSize + Inputs.Length * 2;
+        }
+
+        public int IndexOf(InputField field)
+        {
+            for (int i = 0; i < Inputs.Length; ++i)
+                if (field.Equals(Inputs[i]))
+                    return i;
+            return -1;
         }
 
         protected override void _Draw(int left, ref int top)
@@ -114,11 +122,11 @@ namespace Client.ConsoleForms.Graphics
             }
         }
 
-        public override bool HandleKeyEvent(ConsoleController.KeyEvent evt, bool inFocus)
+        public override bool HandleKeyEvent(ConsoleController.KeyEvent evt, bool inFocus, bool triggered)
         {
-            bool changed = base.HandleKeyEvent(evt, inFocus);
+            bool changed = base.HandleKeyEvent(evt, inFocus, triggered);
             ConsoleKeyInfo info = evt.Event;
-            if (!evt.ValidEvent || !inFocus || Inputs.Length == 0) return changed;
+            if ((!triggered && (!evt.ValidEvent || !inFocus)) || Inputs.Length == 0) return changed;
             evt.ValidEvent = false;
             switch (info.Key)
             {
@@ -148,7 +156,7 @@ namespace Client.ConsoleForms.Graphics
                 case ConsoleKey.Backspace:
                     if (Inputs[selectedField].SelectIndex > 0)
                     {
-                        if (InputListener?.Invoke(this, Inputs[selectedField], info) == false) break;
+                        if (InputListener?.Invoke(this, Inputs[selectedField], info, triggered) == false) break;
                         string text = Inputs[selectedField].Text;
                         Inputs[selectedField].Text = text.Substring(0, Inputs[selectedField].SelectIndex - 1);
                         if (Inputs[selectedField].SelectIndex < text.Length) Inputs[selectedField].Text += text.Substring(Inputs[selectedField].SelectIndex);
@@ -159,7 +167,7 @@ namespace Client.ConsoleForms.Graphics
                 case ConsoleKey.Delete:
                     if (Inputs[selectedField].SelectIndex < Inputs[selectedField].Text.Length)
                     {
-                        if (InputListener?.Invoke(this, Inputs[selectedField], info) == false) break;
+                        if (InputListener?.Invoke(this, Inputs[selectedField], info, triggered) == false) break;
                         string text = Inputs[selectedField].Text;
                         Inputs[selectedField].Text = text.Substring(0, Inputs[selectedField].SelectIndex);
                         if (Inputs[selectedField].SelectIndex + 1 < text.Length) Inputs[selectedField].Text += text.Substring(Inputs[selectedField].SelectIndex + 1);
@@ -174,7 +182,7 @@ namespace Client.ConsoleForms.Graphics
                 default:
                     if (info.KeyChar != 0 && info.KeyChar != '\b' && info.KeyChar != '\r' && (Inputs[selectedField].Text.Length < Inputs[selectedField].MaxLength || Inputs[selectedField].MaxLength < 0) && Inputs[selectedField].IsValidChar(info.KeyChar))
                     {
-                        if (InputListener?.Invoke(this, Inputs[selectedField], info) == false) break;
+                        if (InputListener?.Invoke(this, Inputs[selectedField], info, triggered) == false) break;
                         Inputs[selectedField].Text = Inputs[selectedField].Text.Substring(0, Inputs[selectedField].SelectIndex) + info.KeyChar + Inputs[selectedField].Text.Substring(Inputs[selectedField].SelectIndex);
                         if (++Inputs[selectedField].SelectIndex - Inputs[selectedField].RenderStart == maxWidth) ++Inputs[selectedField].RenderStart;
                     }

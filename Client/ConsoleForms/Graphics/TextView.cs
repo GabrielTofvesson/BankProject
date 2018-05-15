@@ -10,11 +10,28 @@ namespace Client.ConsoleForms.Graphics
 {
     public class TextView : View
     {
-        protected readonly string[] text;
+        protected string[] text;
         protected string[] text_render;
         protected int maxWidth, maxHeight;
 
-        public string Text { get; }
+        private string _text;
+        public string Text
+        {
+            get => _text;
+            protected set
+            {
+                _text = value;
+                text = _text.Split(' ');
+
+                // Compute the layout of the text to be rendered
+                text_render = ComputeTextDimensions(this.text);
+                int actualWidth = 0;
+                foreach (var t in text_render) if (actualWidth < t.Length) actualWidth = t.Length;
+                ContentWidth = maxWidth;// + padding.Left() + padding.Right();
+                ContentHeight = text_render.Length;// + padding.Top() + padding.Bottom();
+                Dirty = true;
+            }
+        }
 
         public int MaxWidth
         {
@@ -52,10 +69,7 @@ namespace Client.ConsoleForms.Graphics
 
         public TextView(ViewData parameters, LangManager lang) : base(parameters, lang)
         {
-            //BorderColor = (ConsoleColor) parameters.AttribueAsInt("border", (int)ConsoleColor.Blue);
-
             Border = ' ';
-            this.text = (Text = parameters.NestedText("Text")).Split(' ');
             int widest = 0;
             foreach (var t in parameters.NestedText("Text").Split('\n'))
                 if (t.Length > widest)
@@ -63,12 +77,7 @@ namespace Client.ConsoleForms.Graphics
             this.maxWidth = parameters.AttribueAsInt("width") < 1 ? widest : parameters.AttribueAsInt("width");
             this.maxHeight = parameters.AttribueAsInt("height", -1);
 
-            // Compute the layout of the text to be rendered
-            text_render = ComputeTextDimensions(this.text);
-            int actualWidth = 0;
-            foreach (var t in text_render) if (actualWidth < t.Length) actualWidth = t.Length;
-            ContentWidth = maxWidth;// + padding.Left() + padding.Right();
-            ContentHeight = text_render.Length;// + padding.Top() + padding.Bottom();
+            this.text = (Text = parameters.NestedText("Text")).Split(' ');
         }
 
         protected virtual string[] ComputeTextDimensions(string[] text)

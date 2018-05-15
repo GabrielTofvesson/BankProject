@@ -34,18 +34,32 @@ To go back, press [ESCAPE]</Entry>
 	<Entry name="SE_bal">Balance: $1</Entry>
 	<Entry name="SE_hist">Transaction history</Entry>
 	<Entry name="SE_tx">Transfer funds</Entry>
+	<Entry name="SE_tx_success">Funds transferred!</Entry>
 	<Entry name="SE_who">Send to</Entry>
 	<Entry name="SE_where">Account</Entry>
+	<Entry name="SE_where_f">From Account:</Entry>
+	<Entry name="SE_where_t">To Account:</Entry>
 	<Entry name="SE_view">View accounts</Entry>
-	<Entry name="SE_amount">Amount to transfer</Entry>
-	<Entry name="SE_msg">Include a message</Entry>
+	<Entry name="SE_amount">Amount to transfer:</Entry>
+	<Entry name="SE_tx_verify">Sending: $0 SEK
+To: $1
+To the account: $2
+Is this correct?</Entry>
+	<Entry name="SE_account_select">Select account...</Entry>
+	<Entry name="SE_user_select">Select user...</Entry>
+	<Entry name="SE_user_noselect">Please select a user!</Entry>
+	<Entry name="SE_account_noselect">Please select an account!</Entry>
+	<Entry name="SE_msg">Include a message:</Entry>
 	<Entry name="SE_pwdu">Update password</Entry>
     <Entry name="SE_exit">Log out</Entry>
     <Entry name="SE_open">Open an account</Entry>
     <Entry name="SE_close">Close an account</Entry>
     <Entry name="SE_accounts">Show accounts</Entry>
+    <Entry name="SE_balance_toohigh">Supplied balance is higher than available amount in source account!
+Available balance: $0 SEK</Entry>
+    <Entry name="SE_checking">Checking...</Entry>
     <Entry name="SE_info">Name: $0
-Balance: $1</Entry>
+Balance: $1 SEK</Entry>
 	<Entry name="SE_autolo">You were automatically logged out due to inactivity</Entry>
 	<Entry name="SE_lo">Logged out</Entry>
 	<Entry name="SE_updatestall">Updating password...</Entry>

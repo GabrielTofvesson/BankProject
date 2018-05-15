@@ -42,6 +42,33 @@
     <Text>@string/SE_pwdu</Text>
   </InputView>
   
+  <InputView id="transfer"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Fields>
+      <Field>@string/SE_where_f</Field>
+      <Field>@string/SE_who</Field>
+      <Field>@string/SE_where_t</Field>
+      <Field input_type="decimal">@string/SE_amount</Field>
+      <Field>@string/SE_msg</Field>
+    </Fields>
+    <Text>@string/SE_tx</Text>
+  </InputView>
+
+  <DialogView id="transfer_verify"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Options>
+      <Option>@string/GENERIC_negative</Option>
+      <Option>@string/GENERIC_positive</Option>
+    </Options>
+    <Text>@string/SE_tx_verify</Text>
+  </DialogView>
+
   <!-- Session account actions -->
   <ListView id="menu_options"
     padding_left="2"
@@ -53,6 +80,10 @@
 
       <ButtonView id="view">
         <Text>@string/SE_view</Text>
+      </ButtonView>
+
+      <ButtonView id="tx">
+        <Text>@string/SE_tx</Text>
       </ButtonView>
 
       <ButtonView id="update">
@@ -79,7 +110,8 @@
   <!-- Bank account list -->
   <ListView id="account_show"
     padding_left="2"
-    padding_right="2">
+    padding_right="2"
+    border="8">
     <Views>
       <ButtonView id="close">
         <Text>@string/GENERIC_dismiss</Text>
@@ -91,7 +123,8 @@
     padding_left="2"
     padding_right="2"
     padding_top="1"
-    padding_bottom="1">
+    padding_bottom="1"
+    border="11">
     <Options>
       <Option>@string/GENERIC_accept</Option>
     </Options>

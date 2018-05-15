@@ -71,7 +71,7 @@ namespace Client.ConsoleForms.Graphics
         {
             foreach (var data in innerViews)
                 if (data.Item1 != null && data.Item1.Equals(viewID))
-                    throw new SystemException("Cannot load view with same id"); // TODO: Replace with custom exception
+                    return;
             innerViews.Insert(Math.Min(insert, innerViews.Count), new Tuple<string, View>(viewID, v));
         }
 
@@ -101,7 +101,12 @@ namespace Client.ConsoleForms.Graphics
         {
             for(int i = innerViews.Count - 1; i>=0; --i)
                 if (p(innerViews[i]))
+                {
                     innerViews.RemoveAt(i);
+                    if (SelectedView >= innerViews.Count) SelectedView = Math.Max(0, innerViews.Count - 1);
+                }
+            ComputeSize();
+            if (SelectedView >= innerViews.Count) SelectedView = Math.Max(0, innerViews.Count - 1);
         }
 
         protected void ComputeSize()
@@ -165,11 +170,11 @@ namespace Client.ConsoleForms.Graphics
             Console.Write(Filler(' ', ContentWidth));
         }
 
-        public override bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus)
+        public override bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus, bool triggered)
         {
-            if (!inFocus || !info.ValidEvent) return false;
+            if (!triggered && (!inFocus || !info.ValidEvent)) return false;
 
-            bool changed = base.HandleKeyEvent(info, inFocus) || innerViews[SelectedView].Item2.HandleKeyEvent(info, inFocus);
+            bool changed = base.HandleKeyEvent(info, inFocus, triggered) || innerViews[SelectedView].Item2.HandleKeyEvent(info, inFocus, triggered);
             info.ValidEvent = false;
             // Handle navigation
             switch (info.Event.Key)

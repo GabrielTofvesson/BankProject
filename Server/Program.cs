@@ -122,7 +122,9 @@ Use command 'help' to get a list of available commands";
             bool GetUser(string sid, out Database.User user)
             {
                 user = manager.GetUser(sid);
-                return user != null;
+                bool exists = user != null;
+                if (exists) user = db.GetUser(user.Name);
+                return exists && user!=null;
             }
 
             bool GetAccount(string name, Database.User user, out Database.Account acc)
@@ -188,7 +190,7 @@ Use command 'help' to get a list of available commands";
                                 }
                                 manager.Refresh(cmd[1]);
                                 StringBuilder builder = new StringBuilder();
-                                db.Users(u => { if(u.IsAdministrator || u!=user) builder.Append(u.Name.ToBase64String()).Append('&'); return false; });
+                                db.Users(u => { if(u.IsAdministrator || !u.Name.Equals(user)) builder.Append(u.Name.ToBase64String()).Append('&'); return false; });
                                 if (builder.Length != 0) --builder.Length;
                                 return GenerateResponse(id, builder);
                             }
@@ -197,7 +199,7 @@ Use command 'help' to get a list of available commands";
                                 if (!GetUser(cmd[1], out var user))
                                 {
                                     if (verbosity > 0) Output.Error("Recieved a bad session id!");
-                                    return ErrorResponse(id, "badsession");
+                                    return ErrorResponse(id, "baduser");
                                 }
                                 manager.Refresh(cmd[1]);
                                 StringBuilder builder = new StringBuilder();
@@ -243,18 +245,18 @@ Use command 'help' to get a list of available commands";
                                     error += "notargetusr";     // Target user could not be found
                                 else if (!GetAccount(data[3], tUser = db.GetUser(data[2]), out tAccount))
                                     error += "notargetacc";     // Target account could not be found
-                                else if ((!user.IsAdministrator && (systemInsert = (data[2].Equals(user.Name) && account.name.Equals(tAccount.name)))))
+                                else if ((systemInsert = (data[2].Equals(user.Name) && account.name.Equals(tAccount.name))) && (!user.IsAdministrator))
                                     error += "unprivsysins";    // Unprivileged request for system-sourced transfer
                                 else if (!decimal.TryParse(data[4], out amount) || amount < 0)
                                     error += "badbalance";      // Given sum was not a valid amount
-                                else if ((!systemInsert && amount > account.balance))
+                                else if ((!user.IsAdministrator && !systemInsert && amount > account.balance))
                                     error += "insufficient";    // Insufficient funds in the source account
                                 
                                 // Checks if an error ocurred and handles such a situation appropriately
                                 if(!error.Equals(VERBOSE_RESPONSE))
                                 {
                                     // Don't print input data to output in case sensitive information was included
-                                    Output.Error($"Recieved problematic transaction data ({error}): {data?.ToList().ToString() ?? "Data could not be parsed"}");
+                                    Output.Error($"Recieved problematic transaction data ({error}): {data?.ToList().ToReadableString() ?? "Data could not be parsed"}");
                                     return ErrorResponse(id, error);
                                 }
                                 // At this point, we know that all parsed variables above were successfully parsed and valid, therefore: no NREs
@@ -298,14 +300,13 @@ Use command 'help' to get a list of available commands";
                                 Database.Account account = null;
                                 if (!ParseDataPair(cmd[1], out string session, out string name) || // Get session id and account name
                                     !GetUser(session, out user) || // Get user associated with session id
-                                    !GetAccount(name, user, out account) ||
-                                    account.balance != 0)
+                                    !GetAccount(name, user, out account))
                                 {
                                     // Don't print input data to output in case sensitive information was included
                                     Output.Error($"Recieved problematic session id or account name!");
 
                                     // Possible errors: bad session id, bad account name, balance in account isn't 0
-                                    return ErrorResponse(id, (user == null ? "badsession" : account == null ? "badacc" : "hasbal"));
+                                    return ErrorResponse(id, (user == null ? "badsession" : account == null ? "badacc" : "badmsg"));
                                 }
                                 manager.Refresh(session);
                                 // Response example: "123.45{Sm9obiBEb2U=&Sm9obnMgQWNjb3VudA==&SmFuZSBEb2U=&SmFuZXMgQWNjb3VudA==&123.45&SGV5IHRoZXJlIQ=="
@@ -514,6 +515,9 @@ Use command 'help' to get a list of available commands";
 
             // Stop the server (obviously)
             server.StopRunning();
+
+            // Flush database
+            //db.Flush();
         }
 
         // Handles unexpected console close events (kernel event hook for window close event)

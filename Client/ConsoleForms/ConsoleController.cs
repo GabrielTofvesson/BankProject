@@ -90,19 +90,27 @@ namespace Client.ConsoleForms
             for (int i = renderQueue.Count - 1; i >= 0; --i)
                 if (renderQueue[i].Item1.Equals(v))
                 {
+                    // Compute occlusion region
                     Region test = renderQueue[i].Item1.Occlusion;
                     test.Offset(renderQueue[i].Item2.ComputeLayoutParams(width, height));
                     Region removing = test.Subtract(r);
                     needsRedraw |= removing.Area > 0;
 
+                    // Check whether or not view is completely occluded: if it is not, a redraw is required, else redraw isn't necessary
                     Region cmp;
                     for (int j = i - 1; !needsRedraw && j >= 0; --j)
                         needsRedraw |= (cmp = renderQueue[j].Item1.Occlusion).Subtract(removing).Area != cmp.Area;
 
+                    // Trigger close event (immediately before closing)
+                    v.OnClose?.Invoke(v);
+
+                    // Remove view from renderqueue and clear it from the screen
                     renderQueue.RemoveAt(i);
                     ClearRegion(removing);
                     if (++closed == maxCloses) break;
                 }
+
+            // Redraw if necessary
             if (redraw && needsRedraw) Draw(false);
         }
 
@@ -147,7 +155,7 @@ namespace Client.ConsoleForms
             int lowestDirty = renderQueue.Count;
             int count = renderQueue.Count - 1;
             for (int i = count; i >= 0; --i)
-                if (renderQueue[i].Item1.HandleKeyEvent(keyInfo, i == count))
+                if (renderQueue[i].Item1.HandleKeyEvent(keyInfo, i == count, false))
                     lowestDirty = i;
             if (redrawOnDirty) Draw(false, lowestDirty);
             return keyInfo;

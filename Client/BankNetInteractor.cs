@@ -196,6 +196,14 @@ namespace Client
             });
         }
 
+        public async virtual Task<Promise> ListUsers()
+        {
+            await StatusCheck(true);
+            client.Send(CreateCommandMessage("List", sessionID, out var pID));
+            RefreshTimeout();
+            return RegisterPromise(pID);
+        }
+
         public async virtual Task<Promise> CreateAccount(string accountName)
         {
             await StatusCheck(true);

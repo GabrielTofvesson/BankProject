@@ -51,16 +51,19 @@ namespace Server
         private void AddUser(User entry, bool withFlush)
         {
             for (int i = 0; i < loadedUsers.Count; ++i)
-                if (entry.Equals(loadedUsers[i]))
+                if (entry.Name.Equals(loadedUsers[i].Name))
                     loadedUsers[i] = entry;
 
             for (int i = toRemove.Count - 1; i >= 0; --i)
-                if (toRemove[i].Equals(entry.Name))
+                if (toRemove[i].Name.Equals(entry.Name))
                     toRemove.RemoveAt(i);
 
             for (int i = 0; i < changeList.Count; ++i)
-                if (changeList[i].Equals(entry.Name))
+                if (changeList[i].Name.Equals(entry.Name))
+                {
+                    changeList[i] = entry;
                     return;
+                }
 
             changeList.Add(entry);
 
@@ -94,7 +97,7 @@ namespace Server
         // Permissive (cache-dependent) flush
         private void Flush(bool optional)
         {
-            if(!(optional || changeList.Count > 30 || toRemove.Count > 30)) return; // No need to flush
+            if(optional && (changeList.Count < 30 && toRemove.Count < 30)) return; // No need to flush
             string temp = GenerateTempFileName("tmp_", ".xml");
             using(var writer = XmlWriter.Create(temp))
             {
@@ -287,7 +290,8 @@ namespace Server
             Transaction tx = new Transaction(from == null ? "System" : from.Name, to.Name, amount, message, fromAccount, toAccount);
             toAcc.History.Add(tx);
             toAcc.balance += amount;
-            AddUser(to, false);
+            AddUser(to, false); // Let's not flush unnecessarily
+            //UpdateUser(to); // For debugging: Force a flush
             if (from != null)
             {
                 fromAcc.History.Add(tx);
@@ -373,7 +377,9 @@ namespace Server
                 {
                     transaction.to = Encode(transaction.to);
                     transaction.from = Encode(transaction.from);
-                    transaction.meta = Encode(transaction.meta);
+                    if(transaction.meta != null) transaction.meta = Encode(transaction.meta);
+                    transaction.fromAccount = Encode(transaction.fromAccount);
+                    transaction.toAccount = Encode(transaction.toAccount);
                 }
             }
             return u;
@@ -391,7 +397,9 @@ namespace Server
                 {
                     transaction.to = Decode(transaction.to);
                     transaction.from = Decode(transaction.from);
-                    transaction.meta = Decode(transaction.meta);
+                    if(transaction.meta != null) transaction.meta = Decode(transaction.meta);
+                    transaction.fromAccount = Decode(transaction.fromAccount);
+                    transaction.toAccount = Decode(transaction.toAccount);
                 }
             }
             return u;
@@ -482,7 +490,11 @@ namespace Server
                 this.name = name;
             }
             public Account(Account copy) : this(copy.owner, copy.balance, copy.name)
-                => History.AddRange(copy.History);
+            {
+                // Value copy, not reference copy
+                foreach (var tx in copy.History)
+                    History.Add(new Transaction(tx.from, tx.to, tx.amount, tx.meta, tx.fromAccount, tx.toAccount));
+            }
             public Account AddTransaction(Transaction tx)
             {
                 History.Add(tx);
@@ -598,7 +610,7 @@ namespace Server
                         foreach (var accountData in entry.NestedEntries)
                         {
                             if (accountData.Name.Equals("Name")) name = accountData.Text;
-                            else if (entry.Name.Equals("Transaction"))
+                            else if (accountData.Name.Equals("Transaction"))
                             {
                                 string fromAccount = null;
                                 string toAccount = null;
@@ -606,7 +618,7 @@ namespace Server
                                 string to = null;
                                 decimal amount = -1;
                                 string meta = "";
-                                foreach (var e1 in entry.NestedEntries)
+                                foreach (var e1 in accountData.NestedEntries)
                                 {
                                     if (e1.Name.Equals("To")) to = e1.Text;
                                     else if (e1.Name.Equals("From")) from = e1.Text;
@@ -625,7 +637,7 @@ namespace Server
                                     user.ProblematicTransactions = true;
                                 else history.Add(new Transaction(from, to, amount, meta, fromAccount, toAccount));
                             }
-                            else if (entry.Name.Equals("Balance")) balance = decimal.TryParse(entry.Text, out decimal l) ? l : 0;
+                            else if (accountData.Name.Equals("Balance")) balance = decimal.TryParse(accountData.Text, out decimal l) ? l : 0;
                         }
                         if (name == null || balance < 0)
                         {

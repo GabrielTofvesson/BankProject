@@ -235,6 +235,23 @@ namespace Tofvesson.Crypto
             return t1;
         }
 
+        public static T[] ForEach<T>(this T[] t, Func<T, T> action)
+        {
+            for (int i = 0; i < t.Length; ++i)
+                t[i] = action(t[i]);
+            return t;
+        }
+
+        // Convert an enumerable object containing strings into a readable format
+        public static string ToReadableString(this IEnumerable<string> e)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append('[');
+            foreach (var entry in e) builder.Append('"').Append(entry.Replace("\\", "\\\\").Replace("\"", "\\\"")).Append("\", ");
+            if (builder.Length != 1) builder.Length -= 2;
+            return builder.Append(']').ToString();
+        }
+
         /// <summary>
         /// Reads a serialized 32-bit integer from the byte collection
         /// </summary>

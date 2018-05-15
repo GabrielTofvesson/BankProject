@@ -32,6 +32,7 @@ namespace Client.ConsoleForms.Graphics
         public bool Dirty { get; set; }
         public LangManager I18n { get; private set; }
         public ViewEvent OnBackEvent { get; set; }
+        public ViewEvent OnClose { get; set; }
 
         public View(ViewData parameters, LangManager lang)
         {
@@ -114,9 +115,9 @@ namespace Client.ConsoleForms.Graphics
             left += padding.Left() / 2; // Increment left offset
         }
         protected abstract void _Draw(int left, ref int top);
-        public virtual bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus)
+        public virtual bool HandleKeyEvent(ConsoleController.KeyEvent info, bool inFocus, bool triggered)
         {
-            if ((back_data.Length != 0 || OnBackEvent!=null) && info.ValidEvent && inFocus && info.Event.Key == ConsoleKey.Escape)
+            if ((back_data.Length != 0 || OnBackEvent!=null) && (triggered || (info.ValidEvent && inFocus)) && info.Event.Key == ConsoleKey.Escape)
             {
                 info.ValidEvent = false;
                 if(back_data.Length!=0) ParseAction(back_data, true)();
@@ -124,6 +125,7 @@ namespace Client.ConsoleForms.Graphics
             }
             return false;
         }
+        public virtual void TriggerKeyEvent(ConsoleController.KeyEvent info) => HandleKeyEvent(info, true, true);
         protected void DrawTopPadding(int left, ref int top) => DrawPadding(left, ref top, padding.Top());
         protected void DrawBottomPadding(int left, ref int top) => DrawPadding(left, ref top, padding.Bottom());
         private void DrawPadding(int left, ref int top, int count)
