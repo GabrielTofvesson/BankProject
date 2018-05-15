@@ -125,6 +125,7 @@ namespace Client.ConsoleForms.Graphics
             }
             return false;
         }
+        public virtual void TriggerKeyEvent(ConsoleKeyInfo info) => TriggerKeyEvent(new ConsoleController.KeyEvent(info));
         public virtual void TriggerKeyEvent(ConsoleController.KeyEvent info) => HandleKeyEvent(info, true, true);
         protected void DrawTopPadding(int left, ref int top) => DrawPadding(left, ref top, padding.Top());
         protected void DrawBottomPadding(int left, ref int top) => DrawPadding(left, ref top, padding.Bottom());

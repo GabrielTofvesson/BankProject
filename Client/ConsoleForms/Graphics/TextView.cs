@@ -85,8 +85,59 @@ namespace Client.ConsoleForms.Graphics
             if (maxHeight == 0)
                 return new string[0];
 
+            // Extract newlines
+            List<string> l = new List<string>();
+            int afterCount = 0;
+            foreach (var t in text)
+            {
+                string txt = t;
+                while (txt.StartsWith("\n"))
+                {
+                    l.Add("\n");
+                    txt = txt.Substring(1);
+                }
+                while (txt.EndsWith("\n"))
+                {
+                    ++afterCount;
+                    txt = txt.Substring(0, txt.Length - 1);
+                }
+
+                var lines = txt.Split('\n');
+                for (int i = 0; i < lines.Length; ++i)
+                {
+                    l.Add(lines[i]);
+                    if (i != lines.Length - 1) l.Add("\n");
+                }
+
+                while (afterCount-- > 0) l.Add("\n");
+
+            }
+
             BoundedList<string> generate = new BoundedList<string>(maxHeight);
 
+            int height = 0;
+
+            for (int i = 0; i < l.Count; ++i)
+            {
+                bool hasHeight = height < generate.Count;
+                string get = height >= generate.Count ? null : generate[height];
+                if (l[i].Equals("\n"))
+                {
+                    if (hasHeight) generate[height] = get ?? "";
+                    else if (!generate.Add("")) goto Done;
+                    ++height;
+                    continue;
+                }
+
+                if (get == null || get.Length == 0)
+                {
+                    if(hasHeight) generate[height] = l[i];
+                    else if (!generate.Add(l[i])) goto Done;
+                }
+                else generate[height] = get + " " + l[i];
+            }
+            Done:
+            return generate.ToArray();
             for (int i = 0; i < text.Length; ++i)
             {
                 if (generate.Count == 0)

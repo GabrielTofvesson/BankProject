@@ -1,5 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?> 
 <Strings label="Svenska">
+	<Entry name="WS_welcome">Hej och välkommen till ConsoleForms bankprojektet!
+Om du är ovan vid ConsoleForms-gränssnittet och vill
+vänja dig vid dess funktioner, så finns det en guide
+till gränssnittet!
+Notera att denna dialog aldrig kommer att visas igen.
+Vill du gå igenom en introduktion till gränssnittet?</Entry>
+	<Entry name="WS_dismiss">Nej tack</Entry>
+	<Entry name="WS_accept">Ja tack</Entry>
+	<Entry name="WS_continue">Nästa</Entry>
+	<Entry name="WS_back">Backa</Entry>
+	<Entry name="WS_describe1">ConsoleForms är ett grafiskt gränssnitt som tar
+inspiration ifrån Windows 1.0's gränssnitt
+och från Android's kodningssätt samt
+eventsystem.</Entry>
+	<Entry name="WS_describe2">Eftersom ConsoleForms är helt och hållet konsollbaserat,
+beror den på tangentborsbaserade events.
+T.ex. kan du trycka på [VÄNSTER] och [HÖGER]
+tangenterna för att göra ett val här nedan.</Entry>
+	<Entry name="WS_describe3">ConsoleForms stöder dessutom input-fält som den här nedan.
+För att mata in information så är det bara att skriva.
+För att byta filket vält som du skriver i, använd
+[UPP] och [NED] tangenterna för att navigera i den
+korresponderande riktningen. För att navigera inom
+ett fält använder du bara [HÖGER] och [VÄNSTER]
+piltangent som i dialogrutan.
+Notera att man dessutom kan navigera till nästa
+inputfält genom att trycka på [TABB].
+För att lämna in informationen i inputfälten
+trycker du [ENTER]. Detta gör du dessutom för att
+fortsätta.</Entry>
+	<Entry name="WS_describe4">Underbart! I vissa fall kan det ske att inputfälten
+kräver ett visst format på den text som anges t.ex:
+Heltal, decimaltal, et.c. Detta innebär att om en
+karaktär anges som inte matchar det bestämda
+formatet, kommer den angivna karaktären att
+ignoreras.</Entry>
+	<Entry name="WS_input">Inputfält:</Entry>
+	<Entry name="WS_input_integer">Heltals-input:</Entry>
+	<Entry name="WS_input_decimal">Decimaltals-input:</Entry>
+	<Entry name="WS_input_alphabet">Bokstavs-input:</Entry>
+	<Entry name="WS_describe4_1">Fler inmatningsformat...</Entry>
+	<Entry name="WS_input_alphanum">Alfanumerisk input:</Entry>
+	<Entry name="WS_input_password">Lösenords-input:</Entry>
+	<Entry name="WS_input_limited">Längdbegränsad input:</Entry>
+	<Entry name="WS_describe4">För att avbryta (eller back) så används [ESC]-
+tangenten, och med det var guiden slut.
+För att lämna guiden och börja använda
+programmet, tryck [ESC].</Entry>
+
 	<Entry name="NC_head">Serverkonfiguration</Entry>
 	<Entry name="NC_sec">Den valda serverns identitet kunde inte verifieras. Detta innebär att det inte är en officiell server. Fortsätt?</Entry>
 	<Entry name="NC_stall">Kopplar upp mot servern...</Entry>
@@ -53,7 +102,7 @@ Till kontot: $2
 	<Entry name="SE_pwdu">Uppdatera lösenord</Entry>
     <Entry name="SE_exit">Logga ut</Entry>
     <Entry name="SE_open">Öppna ett konto</Entry>
-    <Entry name="SE_close">Stäng ett konto</Entry>
+    <Entry name="SE_close">Stäng konto</Entry>
     <Entry name="SE_accounts">Visa konton</Entry>
     <Entry name="SE_balance_toohigh">Angivet belopp är högre än det tillgängliga beloppet i ursprungskontot!
 Tillgängligt saldo: $0 SEK</Entry>

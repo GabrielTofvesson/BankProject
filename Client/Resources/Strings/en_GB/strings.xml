@@ -1,5 +1,49 @@
 <?xml version="1.0" encoding="utf-8" ?> 
 <Strings label="English">
+	<Entry name="WS_welcome">Hello and welcome to the ConsoleForms bank project!
+If you are unfamiliar with ConsoleForms and would like to
+familiarize yourself with it, we are offering a beginner's
+guide to the format! Note: This dialog will never appear again.
+Would you like to be shown the features of ConsoleForms
+before proceeding?</Entry>
+	<Entry name="WS_dismiss">No thank you</Entry>
+	<Entry name="WS_accept">Teach me</Entry>
+	<Entry name="WS_continue">Next</Entry>
+	<Entry name="WS_back">Back</Entry>
+	<Entry name="WS_describe1">ConsoleForms is a graphical interface API heavily inspired
+by the graphics of Windows 1.0, and the functionality
+of the Android UI experience.</Entry>
+	<Entry name="WS_describe2">As ConsoleForms is entirely based on the console, it relies
+completely on keyboard-based events.
+For example, press the [LEFT] and [RIGHT] arrow keys to select the
+options listed below.</Entry>
+	<Entry name="WS_describe3">ConsoleForms also supports input fields like the one below.
+To enter information into an input field, simply type.
+To switch which input field you are writing in, use
+the [UP] and [DOWN] arrow keys to navigate in the
+corresponding direction. To navigate within a field,
+use the [LEFT] and/or [RIGHT] arrow keys.
+Note: to quickly navigate to the inut field below the
+currently selected one, use [TAB]. To submit the input,
+press [ENTER].</Entry>
+	<Entry name="WS_describe4">Excellent! Now, some input fields require a certain
+input format, for example: integer, decimal, e.t.c.
+This means that if you enter characters that don't
+conform to the set format, the characters will be
+discarded.</Entry>
+	<Entry name="WS_input">Input field:</Entry>
+	<Entry name="WS_input_integer">Integer input:</Entry>
+	<Entry name="WS_input_decimal">Decimal input:</Entry>
+	<Entry name="WS_input_alphabet">Letters input:</Entry>
+	<Entry name="WS_describe4_1">More input types are demonstrated below...</Entry>
+	<Entry name="WS_input_alphanum">Alphanumeric input:</Entry>
+	<Entry name="WS_input_password">Password input:</Entry>
+	<Entry name="WS_input_limited">Limited-length input:</Entry>
+	<Entry name="WS_describe5">To exit (or go back) in most situations,
+simply press the [ESC] key. With that,
+the guide is complete. Press [ESC] to exit
+the tutorial and start using the program!</Entry>
+
 	<Entry name="NC_head">Server configuration</Entry>
 	<Entry name="NC_sec">The selected server's identity could not be verified. This implies that it is not an official server. Continue?</Entry>
 	<Entry name="NC_stall">Connecting to server...</Entry>
@@ -53,7 +97,7 @@ Is this correct?</Entry>
 	<Entry name="SE_pwdu">Update password</Entry>
     <Entry name="SE_exit">Log out</Entry>
     <Entry name="SE_open">Open an account</Entry>
-    <Entry name="SE_close">Close an account</Entry>
+    <Entry name="SE_close">Close account</Entry>
     <Entry name="SE_accounts">Show accounts</Entry>
     <Entry name="SE_balance_toohigh">Supplied balance is higher than available amount in source account!
 Available balance: $0 SEK</Entry>

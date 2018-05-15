@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<Elements xmlns="Client.ConsoleForms.Graphics">
+
+	<!-- First dialog that welcomes new user -->
+  <DialogView id="welcome"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Options>
+      <Option>@string/WS_accept</Option>
+      <Option>@string/WS_dismiss</Option>
+    </Options>
+    <Text>@string/WS_welcome</Text>
+  </DialogView>
+
+  <!-- First intro dialog -->
+  <DialogView id="describe1"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1"
+    back="Intro:welcome">
+    <Options>
+      <Option>@string/WS_continue</Option>
+    </Options>
+    <Text>@string/WS_describe1</Text>
+  </DialogView>
+
+  <!-- Second intro view. Teaches dialog nav -->
+  <DialogView id="describe2"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1"
+    back="Intro:describe1">
+    <Options>
+      <Option>@string/WS_continue</Option>
+      <Option>@string/WS_back</Option>
+    </Options>
+    <Text>@string/WS_describe2</Text>
+  </DialogView>
+
+  <!-- Third intro view. Show Inputs -->
+  <InputView id="describe3"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1"
+    back="Intro:describe2">
+    <Fields>
+    	<Field>@string/WS_input</Field>
+    	<Field>@string/WS_input</Field>
+    	<Field>@string/WS_input</Field>
+    </Fields>
+    <Text>@string/WS_describe3</Text>
+  </InputView>
+
+  <!-- Fourth intro view. Input formats -->
+  <InputView id="describe4"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1"
+    back="Intro:describe3">
+    <Fields>
+    	<Field>@string/WS_input</Field>
+    	<Field input_type="integer">@string/WS_input_integer</Field>
+    	<Field input_type="decimal">@string/WS_input_decimal</Field>
+    	<Field input_type="alphabet">@string/WS_input_alphabet</Field>
+    </Fields>
+    <Text>@string/WS_describe4</Text>
+  </InputView>
+
+  <InputView id="describe4_1"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1"
+    back="Intro:describe4">
+  	<Fields>
+    	<Field input_type="alphanumeric">@string/WS_input_alphanum</Field>
+    	<Field hide="true">@string/WS_input_password</Field>
+    	<Field max_length="5">@string/WS_input_limited</Field>
+  	</Fields>
+    <Text>@string/WS_describe4_1</Text>
+  </InputView>
+
+  <!-- Final intro view. Teaches ESC-based nav -->
+  <DialogView id="describe5"
+    padding_left="2"
+    padding_right="2"
+    padding_top="1"
+    padding_bottom="1">
+    <Options>
+      <Option>@string/WS_back</Option>
+    </Options>
+    <Text>@string/WS_describe5</Text>
+  </DialogView>
+</Elements>

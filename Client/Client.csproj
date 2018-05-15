@@ -67,6 +67,7 @@
     <Compile Include="ConsoleForms\Region.cs" />
     <Compile Include="ConsoleForms\Timer.cs" />
     <Compile Include="ConsoleForms\ViewData.cs" />
+    <Compile Include="Context\IntroContext.cs" />
     <Compile Include="Context\NetContext.cs" />
     <Compile Include="BankNetInteractor.cs" />
     <Compile Include="ParseException.cs" />
@@ -97,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Layout\Common.xml" />
+    <Content Include="Resources\Layout\Intro.xml" />
     <Content Include="Resources\Layout\Session.xml" />
     <Content Include="Resources\Layout\Setup.xml">
       <SubType>Designer</SubType>

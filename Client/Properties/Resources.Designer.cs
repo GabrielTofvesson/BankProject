@@ -73,7 +73,14 @@ namespace Client.Properties {
         ///    &lt;/Options&gt;
         ///    &lt;Text&gt;@string/ERR_empty&lt;/Text&gt;
         ///  &lt;/DialogView&gt;
-        ///&lt;/Resources&gt;.
+        ///
+        ///  &lt;DialogView id=&quot;ConnectionError&quot;
+        ///    padding_left=&quot;2&quot;
+        ///    padding_right=&quot;2&quot;
+        ///    padding_top=&quot;1&quot;
+        ///    padding_bottom=&quot;1&quot;
+        ///             border=&quot;4&quot;&gt;
+        ///    &lt;Opt [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Common {
             get {
@@ -98,6 +105,33 @@ namespace Client.Properties {
             get {
                 object obj = ResourceManager.GetObject("e_0x200", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
+        ///&lt;Elements xmlns=&quot;Client.ConsoleForms.Graphics&quot;&gt;
+        ///
+        ///	&lt;!-- First dialog that welcomes new user --&gt;
+        ///  &lt;DialogView id=&quot;welcome&quot;
+        ///    padding_left=&quot;2&quot;
+        ///    padding_right=&quot;2&quot;
+        ///    padding_top=&quot;1&quot;
+        ///    padding_bottom=&quot;1&quot;&gt;
+        ///    &lt;Options&gt;
+        ///      &lt;Option&gt;@string/WS_accept&lt;/Option&gt;
+        ///      &lt;Option&gt;@string/WS_dismiss&lt;/Option&gt;
+        ///    &lt;/Options&gt;
+        ///    &lt;Text&gt;@string/WS_welcome&lt;/Text&gt;
+        ///  &lt;/DialogView&gt;
+        ///
+        ///  &lt;!-- First intro dialog --&gt;
+        ///  &lt;DialogView id=&quot;describe1&quot;
+        ///    padding_left=&quot;2&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Intro {
+            get {
+                return ResourceManager.GetString("Intro", resourceCulture);
             }
         }
         
@@ -163,8 +197,8 @@ namespace Client.Properties {
         ///    padding_bottom=&quot;1&quot;&gt;
         ///    &lt;Text&gt;@string/SE_bal&lt;/Text&gt;
         ///  &lt;/TextView&gt;
-        ///  
-        ///  &lt;ListView id=&quot;me [rest of string was truncated]&quot;;.
+        ///
+        ///  &lt;TextView id=&quot;acco [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Session {
             get {
@@ -198,14 +232,15 @@ namespace Client.Properties {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
         ///&lt;Strings label=&quot;English&quot;&gt;
-        ///	&lt;Entry name=&quot;NC_head&quot;&gt;Server configuration&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_sec&quot;&gt;The selected server&apos;s identity could not be verified. This implies that it is not an official server. Continue?&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Connecting to server...&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_next&quot;&gt;Continue&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_cancel&quot;&gt;Cancel&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_ip&quot;&gt;Server IP:&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_port&quot;&gt;Port:&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_iperr&quot;&gt;The s [rest of string was truncated]&quot;;.
+        ///	&lt;Entry name=&quot;WS_welcome&quot;&gt;Hello and welcome to the ConsoleForms bank project!
+        ///If you are unfamiliar with ConsoleForms and would like to
+        ///familiarize yourself with it, we are offering a beginner&apos;s
+        ///guide to the format! Note: This dialog will never be show again.
+        ///Would you like to be shown the features of ConsoleForms
+        ///before proceeding?&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;WS_dismiss&quot;&gt;No thank you&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;WS_accept&quot;&gt;Teach me&lt;/Entry&gt;
+        ///	&lt;E [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string strings_lang_en_GB {
             get {
@@ -216,14 +251,15 @@ namespace Client.Properties {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
         ///&lt;Strings label=&quot;English&quot;&gt;
-        ///	&lt;Entry name=&quot;NC_head&quot;&gt;Server configuration&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_sec&quot;&gt;The selected server&apos;s identity could not be verified. This implies that it is not an official server. Continue?&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Connecting to server...&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_next&quot;&gt;Continue&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_cancel&quot;&gt;Cancel&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_ip&quot;&gt;Server IP:&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_port&quot;&gt;Port:&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_iperr&quot;&gt;The s [rest of string was truncated]&quot;;.
+        ///	&lt;Entry name=&quot;WS_welcome&quot;&gt;Hello and welcome to the ConsoleForms bank project!
+        ///If you are unfamiliar with ConsoleForms and would like to
+        ///familiarize yourself with it, we are offering a beginner&apos;s
+        ///guide to the format! Note: This dialog will never be show again.
+        ///Would you like to be shown the features of ConsoleForms
+        ///before proceeding?&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;WS_dismiss&quot;&gt;No thank you&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;WS_accept&quot;&gt;Teach me&lt;/Entry&gt;
+        ///	&lt;E [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string strings_lang_en_US {
             get {
@@ -234,14 +270,15 @@ namespace Client.Properties {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt; 
         ///&lt;Strings label=&quot;Svenska&quot;&gt;
-        ///	&lt;Entry name=&quot;NC_head&quot;&gt;Serverkonfiguration&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_sec&quot;&gt;Den valda serverns identitet kunde inte verifieras. Detta innebär att det inte är en officiell server. Fortsätt?&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_stall&quot;&gt;Kopplar upp mot servern...&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_next&quot;&gt;Fortsätt&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_cancel&quot;&gt;Avbryt&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_ip&quot;&gt;Server IP:&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_port&quot;&gt;Port:&lt;/Entry&gt;
-        ///	&lt;Entry name=&quot;NC_iperr&quot;&gt;De [rest of string was truncated]&quot;;.
+        ///	&lt;Entry name=&quot;WS_welcome&quot;&gt;Hej och välkommen till ConsoleForms bankprojektet!
+        ///Om du är ovan vid ConsoleForms-gränssnittet och vill
+        ///vänja dig vid dess funktioner, så finns det en guide
+        ///till gränssnittet!
+        ///Notera att denna dialog aldrig kommer att visas igen.
+        ///Vill du gå igenom en introduktion till gränssnittet?&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;WS_dismiss&quot;&gt;Nej tack&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;WS_accept&quot;&gt;Ja tack&lt;/Entry&gt;
+        ///	&lt;Entry name=&quot;WS_continue&quot;&gt;Nästa&lt;/ [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string strings_lang_sv_SE {
             get {

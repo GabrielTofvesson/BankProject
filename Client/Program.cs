@@ -32,8 +32,10 @@ namespace ConsoleForms
 
             // Start with the networking context
             ContextManager manager = new ContextManager();
+            NetContext networking = new NetContext(manager);
 
-            manager.LoadContext(new NetContext(manager));
+            if (CheckIsNewUser()) manager.LoadContext(new IntroContext(manager, () => manager.LoadContext(networking)));
+            else manager.LoadContext(networking);
 
             // Start input listener loop. Graphics happen here too (triggered by keystrokes)
             ConsoleController.KeyEvent info = new ConsoleController.KeyEvent(default(ConsoleKeyInfo))
@@ -56,6 +58,14 @@ namespace ConsoleForms
                     controller.Draw();
                 }
             } while ((!info.ValidEvent ||  info.Event.Key != ConsoleKey.Escape) && !controller.ShouldExit);
+        }
+
+        private static bool CheckIsNewUser()
+        {
+            if (File.Exists(".cfvfy")) return false;
+            File.Create(".cfvfy").Close();
+            File.SetAttributes(".cfvfy", FileAttributes.Hidden);
+            return true;
         }
 
         // Detects if a key has been hit without blocking
