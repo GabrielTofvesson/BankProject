@@ -35,6 +35,7 @@ namespace Client
         public string UserSession { get => sessionID; }
         protected Task sessionChecker;
         public bool RefreshSessions { get; set; }
+        protected bool triggerRefreshCancel = false;
         
 
         public BankNetInteractor(string address, short port)
@@ -282,6 +283,11 @@ namespace Client
         {
             await StatusCheck(true);
             client.Send(CreateCommandMessage("Logout", sessionID, out long _));
+            CancelAll();
+            sessionID = null;
+            loginTimeout = -1;
+            triggerRefreshCancel = true;
+            client = null;
         }
 
         public async virtual Task<Promise> Refresh()
@@ -347,6 +353,7 @@ namespace Client
             if (RefreshSessions == doAR) return;
             if (RefreshSessions = doAR)
             {
+                triggerRefreshCancel = false;
                 sessionChecker = new Task(DoRefresh);
                 sessionChecker.Start();
             }
@@ -354,12 +361,29 @@ namespace Client
 
         private void DoRefresh()
         {
+            if (triggerRefreshCancel)
+            {
+                triggerRefreshCancel = false;
+                return;
+            }
             // Refresher calls refresh 1500ms before expiry (or asap if less time is available)
             Task.Delay((int)((Math.Min(0, loginTimeout - DateTime.Now.Ticks - 1500)) / TimeSpan.TicksPerMillisecond));
-            Task<Promise> t = null;
+            if (triggerRefreshCancel)
+            {
+                triggerRefreshCancel = false;
+                return;
+            }
             if (IsLoggedIn)
             {
-                t = Refresh();
+                try
+                {
+                    Refresh();
+                }
+                catch
+                {
+                    // Session probably died
+                    return;
+                }
                 if (RefreshSessions)
                 {
                     sessionChecker = new Task(DoRefresh);

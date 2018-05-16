@@ -22,8 +22,8 @@ namespace Client
 
             bool connecting = false;
 
-            
 
+            GetView<InputView>("NetConnect").OnBackEvent = _ => Show("quit");
             GetView<InputView>("NetConnect").SubmissionsListener = i =>
             {
                 if (connecting)
@@ -78,8 +78,6 @@ namespace Client
                 else if (!ip) Show("IPError");
                 else Show("PortError");
             };
-
-            GetView("NetConnect").OnBackEvent = v => controller.ShouldExit = true;
         }
 
         public override void OnCreate() => Show("NetConnect");

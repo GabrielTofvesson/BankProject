@@ -57,6 +57,7 @@ the tutorial and start using the program!</Entry>
 	<Entry name="NC_identity">Verifying server identity...</Entry>
 	<Entry name="NC_verified">Server identity verified!</Entry>
 	<Entry name="NC_verror">Remote server identity could not be verified!</Entry>
+	<Entry name="NC_quit">Would you like to quit?</Entry>
 
     <Entry name="SU_welcome">Welcome to the Tofvesson banking system!
 To continue, press [ENTER]

@@ -26,7 +26,7 @@ namespace Client
             RegisterSelectListeners((s, i, v) => controller.CloseView(s), "DuplicateAccountError", "EmptyFieldError", "IPError", "PortError", "AuthError", "PasswordMismatchError");
 
             // If Escape key is pressed, suggest to controller to terminate
-            GetView("WelcomeScreen").OnBackEvent = v => controller.ShouldExit = true;
+            GetView("WelcomeScreen").OnBackEvent = v => Show("quit");
 
             GetView<InputView>("Login").SubmissionsListener = i =>
             {

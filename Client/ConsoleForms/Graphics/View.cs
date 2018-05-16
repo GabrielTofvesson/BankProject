@@ -139,19 +139,25 @@ namespace Client.ConsoleForms.Graphics
         }
         protected EventAction ParseAction(ViewData data)
         {
-            bool.TryParse(data?.GetAttribute("close")??"", out bool close);
-            return ParseAction(data.GetAttribute("event"), close);
+            bool.TryParse(data?.GetAttribute("close") ?? "false", out bool close);
+            bool.TryParse(data?.GetAttribute("exit") ?? "false", out bool exit);
+            return ParseAction(data.GetAttribute("event"), close, exit);
         }
-        protected EventAction ParseAction(string action, bool close)
+        protected EventAction ParseAction(string action, bool close, bool triggerExit = false)
         {
             string[] components;
-            if (action == null || !action.Contains(':') || (components = action.Split(':')).Length != 2) return () => { };
+            if (action == null || !action.Contains(':') || (components = action.Split(':')).Length != 2)
+                return () => {
+                    if (close) ConsoleController.singleton.CloseView(this);
+                    if (triggerExit) ConsoleController.singleton.ShouldExit = true;
+                };
             var views = ConsoleController.LoadResourceViews(components[0], I18n);
             var view = views.GetNamed(components[1]);
             return () =>
             {
                 if (close) ConsoleController.singleton.CloseView(this);
                 ConsoleController.singleton.AddView(view);
+                if (triggerExit) ConsoleController.singleton.ShouldExit = true;
             };
         }
 

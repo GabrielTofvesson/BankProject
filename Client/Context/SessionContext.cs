@@ -24,7 +24,11 @@ namespace Client
         private List<string> accounts = null;
         private string username;
         private bool isAdministrator = false;
-        
+
+        // Transient data
+        private int accountType = -1;
+        private string acc1 = null, acc2 = null, user = null;
+
         // Stores personal accounts
         private readonly FixedQueue<Tuple<string, Account>> accountDataCache = new FixedQueue<Tuple<string, Account>>(64);
 
@@ -32,79 +36,210 @@ namespace Client
         private readonly FixedQueue<Tuple<string, string>> remoteUserCache = new FixedQueue<Tuple<string, string>>(8);
         private bool accountChange = false;
 
+        // XML-generated views
+        private ListView options;
+        private ButtonView options_exit;
+        private ButtonView options_view;
+        private ButtonView options_delete;
+        private ButtonView options_tx;
+        private ButtonView options_update;
+        private ButtonView options_add;
+        private InputView password_update;
+        private InputView transfer;
+        private DialogView exit_prompt;
+        private DialogView account_delete;
+        private InputView account_create;
+
+        // Synthetic
+        private ListView accountTypes;
+        
+        // Deprecated
+        private DialogView success;
 
         public SessionContext(ContextManager manager, BankNetInteractor interactor) : base(manager, "Session", "Common")
         {
             this.interactor = interactor;
             scheduleDestroy = !interactor.IsLoggedIn;
 
-            RegisterAutoHide("account_create", "account_info", "password_update", "exit_prompt", "account_show", "transfer");
-
-            GetView<DialogView>("Success").RegisterSelectListener((v, i, s) => HandleLogout());
-
-            // Menu option setup
-            ListView options = GetView<ListView>("menu_options");
-            options.GetView<ButtonView>("exit").SetEvent(v => Show("exit_prompt"));
-
-            void SubmitListener(View listener)
+            if (!scheduleDestroy)
             {
-                ButtonView view = listener as ButtonView;
+                RegisterAutoHide("account_create", "account_info", "password_update", "exit_prompt", "account_show", "transfer");
 
-                void ShowAccountData(string name, decimal balance, Account.AccountType type)
-                {
-                    // Build dialog view manually
-                    var show = new DialogView(
-                        new ViewData("DialogView")
 
-                        // Layout parameters
-                        .SetAttribute("padding_left", 2)
-                        .SetAttribute("padding_right", 2)
-                        .SetAttribute("padding_top", 1)
-                        .SetAttribute("padding_bottom", 1)
-                        .SetAttribute("border", (int)ConsoleColor.DarkGreen)
+                // XML-generated views
+                options = GetView<ListView>("menu_options");
+                options_exit = options.GetView<ButtonView>("exit");
+                options_view = options.GetView<ButtonView>("view");
+                options_delete = options.GetView<ButtonView>("delete");
+                options_tx = options.GetView<ButtonView>("tx");
+                options_update = options.GetView<ButtonView>("update");
+                options_add = options.GetView<ButtonView>("add");
 
-                        // Option buttons
-                        .AddNested(new ViewData("Options").AddNestedSimple("Option", GetIntlString("GENERIC_dismiss")))
+                exit_prompt = GetView<DialogView>("exit_prompt");
+                password_update = GetView<InputView>("password_update");
+                transfer = GetView<InputView>("transfer");
+                account_delete = GetView<DialogView>("account_delete");
+                account_create = GetView<InputView>("account_create");
+                success = GetView<DialogView>("Success");
 
-                        // Message
-                        .AddNestedSimple("Text",
-                            GetIntlString("SE_info")
-                                .Replace("$0", name)
-                                .Replace("$1", GetIntlString(type == Account.AccountType.Savings ? "SE_acc_saving" : "SE_acc_checking"))
-                                .Replace("$2", balance.ToTruncatedString())),
 
-                        // No translation (it's already handled)
-                        LangManager.NO_LANG);
-
-                    show.RegisterSelectListener((_, s, l) => Hide(show));
-                    Show(show);
-                }
-
-                // TODO: Show account info
-                var account = AccountLookup(view.Text);
-                if (account == null)
-                {
-                    // TODO: Get account data from server + cache data
-                    Show("data_fetch");
-                    Promise info_promise = Promise.AwaitPromise(interactor.AccountInfo(view.Text));
-                    info_promise.Subscribe = evt =>
+                // Synthetic views
+                accountTypes = GenerateList(
+                    new string[] {
+                    GetIntlString("SE_acc_checking"),
+                    GetIntlString("SE_acc_saving")
+                    }, v =>
                     {
-                        Hide("data_fetch");
-                        if (evt.Value.StartsWith("ERROR") || !Account.TryParse(evt.Value, out var act))
-                            controller.Popup(GetIntlString("GENERIC_error"), 3000, ConsoleColor.Red);
-                        else
-                        {
-                            // Cache result (don't cache savings accounts because their value updates pretty frequently)
-                            if (act.type!=Account.AccountType.Savings) accountDataCache.Enqueue(new Tuple<string, Account>(view.Text, act));
-                            ShowAccountData(view.Text, act.balance, act.type);
-                        }
+                        accountType = accountTypes.SelectedView;
+                        account_create.Inputs[1].Text = (v as ButtonView).Text;
+                        CreateAccount();
+                    }, true);
 
+                // Run setup
+                SetupBackEvents();
+                SetupHideEvents();
+                SetupInputEvents();
+                SetupSubmissionEvents();
+                SetupDefaultViewStates();
+
+                // We have a valid context!
+                RefreshUserInfo();      // Get user info
+                RefreshAccountList();   // Get account list for user
+            }
+        }
+
+        private void SetupInputEvents()
+        {
+            transfer.InputListener = (v, i, s, t) =>
+            {
+                if (t) return false; // Don't handle artificial events
+                i.BackgroundColor = v.DefaultBackgroundColor;
+                i.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
+                if (v.IndexOf(i) < 3)
+                {
+                    // Trigger a keypress event for key [ENTER]
+                    v.TriggerKeyEvent(new ConsoleController.KeyEvent(new ConsoleKeyInfo('\n', ConsoleKey.Enter, false, false, false)));
+                    return false; // Don't update input
+                }
+                return true;
+            };
+
+            account_create.InputListener = (v, c, i, t) =>
+            {
+                c.BackgroundColor = v.DefaultBackgroundColor;
+                c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
+                if (v.IndexOf(c) == 1)
+                {
+                    Show(accountTypes);
+                    return false; // Don't process key event
+                }
+                return true;
+            };
+
+            // Set up a listener to reset color scheme
+            password_update.InputListener = (v, c, i, t) =>
+            {
+                c.BackgroundColor = v.DefaultBackgroundColor;
+                c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
+                return true;
+            };
+        }
+
+        private void ResetInputView(View v) => ResetInputView(v as InputView);
+        private void ResetInputView(InputView i)
+        {
+            i.SelectedField = 0;
+            foreach (var inputField in i.Inputs)
+            {
+                inputField.Text = "";
+                inputField.BackgroundColor = i.DefaultBackgroundColor;
+                inputField.SelectBackgroundColor = i.DefaultSelectBackgroundColor;
+                inputField.SelectIndex = 0;
+                inputField.RenderStart = 0;
+            }
+        }
+
+        private void ResetDialogView(View d) => ResetDialogView(d as DialogView);
+        private void ResetDialogView(DialogView d) => d.Select = 0;
+
+        private void ResetListView(View d) => ResetListView(d as ListView);
+        private void ResetListView(ListView d) => d.SelectedView = 0;
+
+        private void SetupHideEvents()
+        {
+            password_update.OnClose = ResetInputView;
+            transfer.OnClose = _ =>
+            {
+                ResetInputView(transfer);
+                transfer.Inputs[0].Text = GetIntlString("SE_account_select");
+                transfer.Inputs[1].Text = GetIntlString("SE_user_select");
+                transfer.Inputs[2].Text = GetIntlString("SE_account_select");
+                acc1 = null;
+                acc2 = null;
+                user = null;
+            };
+            options.OnClose = ResetListView;
+            account_delete.OnClose = ResetDialogView;
+            account_create.OnClose = _ =>
+            {
+                ResetInputView(account_create);
+                account_create.Inputs[1].Text = GetIntlString("SE_acc_sel");
+                accountType = -1;
+            };
+            exit_prompt.OnClose = ResetDialogView;
+        }
+
+        private void SetupBackEvents()
+        {
+            options.OnBackEvent = v => Show("exit_prompt");
+        }
+
+        private void SetupDefaultViewStates()
+        {
+            account_create.OnClose(account_create);
+            transfer.OnClose(transfer);
+        }
+
+        private void SetupSubmissionEvents()
+        {
+            // Setup options menu events
+            options_add.SetEvent(_ => Show(account_create));
+            options_update.SetEvent(v => Show(password_update));
+            options_tx.SetEvent(v => Show(transfer));
+            options_delete.SetEvent(v => Show(account_delete));
+
+            // Other events
+            account_delete.RegisterSelectListener((v, i, s) =>
+            {
+                Hide(v);
+                if (i == 1)
+                {
+                    Show("delete_stall");
+                    Promise deletion = Promise.AwaitPromise(interactor.DeleteUser());
+                    deletion.Subscribe = p =>
+                    {
+                        Hide("delete_stall");
+                        if (bool.Parse(p.Value))
+                            controller.Popup(GetIntlString("SE_delete_success"), 2500, ConsoleColor.Green, () => manager.LoadContext(new WelcomeContext(manager, interactor)));
+                        else
+                            controller.Popup(GetIntlString("SE_delete_failure"), 1500, ConsoleColor.Red);
                     };
                 }
-                else ShowAccountData(account.Item1, account.Item2.balance, account.Item2.type);
-            }
+            });
 
-            options.GetView<ButtonView>("view").SetEvent(v =>
+            account_create.SubmissionsListener = inputView =>
+            {
+                if (inputView.SelectedField == 1)
+                    Show(accountTypes); // Show account type selection menu
+                else CreateAccount();
+
+            };
+
+            success.RegisterSelectListener((v, i, s) => HandleLogout());
+
+            options_exit.SetEvent(v => Show("exit_prompt"));
+
+            options_view.SetEvent(v =>
             {
                 if (accountChange) RefreshAccountList();
                 if (!accountsGetter.HasValue) Show("data_fetch");
@@ -112,12 +247,12 @@ namespace Client
                 {
                     accountsGetter.Unsubscribe();
                     Hide("data_fetch");
-                    
+
                     Show(GenerateList(p.Value.Split('&').ForEach(Support.FromBase64String), SubmitListener));
                 };
             });
 
-            GetView<InputView>("password_update").SubmissionsListener = v =>
+            password_update.SubmissionsListener = v =>
             {
                 bool hasError = v.Inputs[0].Text.Length == 0;
                 if (hasError)
@@ -127,11 +262,11 @@ namespace Client
                     v.Inputs[0].BackgroundColor = ConsoleColor.DarkRed;
                     controller.Popup(GetIntlString("ERR_empty"), 3000, ConsoleColor.Red);
                 }
-                if(v.Inputs[1].Text.Length == 0)
+                if (v.Inputs[1].Text.Length == 0)
                 {
                     v.Inputs[1].SelectBackgroundColor = ConsoleColor.Red;
                     v.Inputs[1].BackgroundColor = ConsoleColor.DarkRed;
-                    if(!hasError) controller.Popup(GetIntlString("ERR_empty"), 3000, ConsoleColor.Red);
+                    if (!hasError) controller.Popup(GetIntlString("ERR_empty"), 3000, ConsoleColor.Red);
                     return; // No need to continue, we have notified the user. There is no valid information to operate on past this point
                 }
                 if (!v.Inputs[0].Text.Equals(v.Inputs[1].Text))
@@ -151,128 +286,7 @@ namespace Client
                 };
             };
 
-            options.GetView<ButtonView>("delete").SetEvent(v => Show("account_delete"));
-
-            GetView<DialogView>("account_delete").RegisterSelectListener((v, i, s) =>
-            {
-                Hide(v);
-                if (i == 1)
-                {
-                    Show("delete_stall");
-                    Promise deletion = Promise.AwaitPromise(interactor.DeleteUser());
-                    deletion.Subscribe = p =>
-                    {
-                        Hide("delete_stall");
-                        if (bool.Parse(p.Value))
-                            controller.Popup(GetIntlString("SE_delete_success"), 2500, ConsoleColor.Green, () => manager.LoadContext(new NetContext(manager)));
-                        else
-                            controller.Popup(GetIntlString("SE_delete_failure"), 1500, ConsoleColor.Red);
-                    };
-                }
-            });
-
-            // Actual "create account" input box thingy
-            var input = GetView<InputView>("account_create");
-
-            int accountType = -1;
-            ListView accountTypes = null;
-            accountTypes = GenerateList(
-                new string[] {
-                    GetIntlString("SE_acc_checking"),
-                    GetIntlString("SE_acc_saving")
-                }, v =>
-                {
-                    accountType = accountTypes.SelectedView;
-                    input.Inputs[1].Text = (v as ButtonView).Text;
-                    CreateAccount();
-                }, true);
-            input.Inputs[1].Text = GetIntlString("SE_acc_sel");
-            input.SubmissionsListener = inputView =>
-            {
-                if (inputView.SelectedField == 1)
-                    Show(accountTypes); // Show account type selection menu
-                else CreateAccount();
-                
-            };
-            void CreateAccount()
-            {
-                bool hasError = false;
-                if (accountType == -1)
-                {
-                    hasError = true;
-                    input.Inputs[1].SelectBackgroundColor = ConsoleColor.Red;
-                    input.Inputs[1].BackgroundColor = ConsoleColor.DarkRed;
-                    controller.Popup(GetIntlString("SE_acc_nosel"), 2500, ConsoleColor.Red);
-                }
-                if (input.Inputs[0].Text.Length == 0)
-                {
-                    input.Inputs[0].SelectBackgroundColor = ConsoleColor.Red;
-                    input.Inputs[0].BackgroundColor = ConsoleColor.DarkRed;
-                    if(!hasError) controller.Popup(GetIntlString("ERR_empty"), 3000, ConsoleColor.Red);
-                }
-                else
-                {
-                    void AlreadyExists()
-                        => controller.Popup(GetIntlString("SE_account_exists").Replace("$0", input.Inputs[0].Text), 2500, ConsoleColor.Red, () => Hide(input));
-
-                    var act = AccountLookup(input.Inputs[0].Text);
-                    if (act != null) AlreadyExists();
-                    else
-                    {
-                        Show("account_stall");
-                        Promise accountPromise = Promise.AwaitPromise(interactor.CreateAccount(input.Inputs[0].Text, accountType==0));
-                        accountPromise.Subscribe = p =>
-                        {
-                            if (bool.Parse(p.Value))
-                            {
-                                controller.Popup(GetIntlString("SE_account_success"), 750, ConsoleColor.Green, () => Hide(input));
-                                accountChange = true;
-                            }
-                            else AlreadyExists();
-                            Hide("account_stall");
-                        };
-                    }
-                }
-            }
-
-            input.InputListener = (v, c, i, t) =>
-            {
-                c.BackgroundColor = v.DefaultBackgroundColor;
-                c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
-                if (v.IndexOf(c) == 1)
-                {
-                    Show(accountTypes);
-                    return false; // Don't process key event
-                }
-                return true;
-            };
-
-            options.GetView<ButtonView>("add").SetEvent(_ => Show(input));
-
-            // Set up a listener to reset color scheme
-            GetView<InputView>("password_update").InputListener = (v, c, i, t) =>
-            {
-                c.BackgroundColor = v.DefaultBackgroundColor;
-                c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
-                return true;
-            };
-
-            // Update password
-            options.GetView<ButtonView>("update").SetEvent(v => Show("password_update"));
-
-
-            string acc1 = null, acc2 = null, user = null;
-
-            options.GetView<ButtonView>("tx").SetEvent(v =>
-            {
-                var txView = GetView<InputView>("transfer");
-                txView.Inputs[0].Text = GetIntlString("SE_account_select");
-                txView.Inputs[1].Text = GetIntlString("SE_user_select");
-                txView.Inputs[2].Text = GetIntlString("SE_account_select");
-                Show(txView);
-            });
-
-            GetView<InputView>("transfer").SubmissionsListener = v =>
+            transfer.SubmissionsListener = v =>
             {
                 switch (v.SelectedField)
                 {
@@ -318,7 +332,7 @@ namespace Client
                     case 4:
                         Show("verify_stall");
                         bool error = false;
-                        if (acc1==null)
+                        if (acc1 == null)
                         {
                             controller.Popup(GetIntlString("SE_account_noselect"), 1500, ConsoleColor.Red);
                             error = true;
@@ -327,14 +341,14 @@ namespace Client
                         }
                         if (acc2 == null)
                         {
-                            if(!error) controller.Popup(GetIntlString("SE_account_noselect"), 1500, ConsoleColor.Red);
+                            if (!error) controller.Popup(GetIntlString("SE_account_noselect"), 1500, ConsoleColor.Red);
                             error = true;
                             v.Inputs[2].BackgroundColor = ConsoleColor.Red;
                             v.Inputs[2].SelectBackgroundColor = ConsoleColor.DarkRed;
                         }
-                        if(user == null)
+                        if (user == null)
                         {
-                            if(!error) controller.Popup(GetIntlString("SE_account_nouser"), 1500, ConsoleColor.Red);
+                            if (!error) controller.Popup(GetIntlString("SE_account_nouser"), 1500, ConsoleColor.Red);
                             error = true;
                             v.Inputs[1].BackgroundColor = ConsoleColor.DarkRed;
                             v.Inputs[1].SelectBackgroundColor = ConsoleColor.Red;
@@ -373,34 +387,11 @@ namespace Client
                 }
             };
 
-            GetView<InputView>("transfer").InputListener = (v, i, s, t) =>
-            {
-                if (t) return false; // Don't handle artificial events
-                i.BackgroundColor = v.DefaultBackgroundColor;
-                i.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
-                if (v.IndexOf(i) < 3)
-                {
-                    // Trigger a keypress event for key [ENTER]
-                    v.TriggerKeyEvent(new ConsoleController.KeyEvent(new ConsoleKeyInfo('\n', ConsoleKey.Enter, false, false, false)));
-                    return false; // Don't update input
-                }
-                return true;
-            };
-
-            options.OnBackEvent = v => Show("exit_prompt");
-
-            GetView<DialogView>("exit_prompt").RegisterSelectListener((v, i, s) =>
+            exit_prompt.RegisterSelectListener((v, i, s) =>
             {
                 if (i == 0) Hide("exit_prompt");
                 else HandleLogout();
             });
-
-            if (!scheduleDestroy)
-            {
-                // We have a valid context!
-                RefreshUserInfo();      // Get user info
-                RefreshAccountList();   // Get account list for user
-            }
         }
 
         private ListView GenerateList(string[] data, SubmissionEvent onclick, bool exitOnSubmit = false, bool hideOnBack = true)
@@ -455,7 +446,7 @@ namespace Client
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             interactor.Logout();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            controller.Popup(GetIntlString($"SE_{(automatic ? "auto" : "")}lo"), 2500, ConsoleColor.DarkMagenta, () => manager.LoadContext(new NetContext(manager)));
+            controller.Popup(GetIntlString($"SE_{(automatic ? "auto" : "")}lo"), 2500, ConsoleColor.DarkMagenta, () => manager.LoadContext(new WelcomeContext(manager, interactor)));
         }
 
         private Tuple<string, Account> AccountLookup(string name)
@@ -478,6 +469,107 @@ namespace Client
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             interactor.CancelAll();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        }
+
+
+
+        void CreateAccount()
+        {
+            bool hasError = false;
+            if (accountType == -1)
+            {
+                hasError = true;
+                account_create.Inputs[1].SelectBackgroundColor = ConsoleColor.Red;
+                account_create.Inputs[1].BackgroundColor = ConsoleColor.DarkRed;
+                controller.Popup(GetIntlString("SE_acc_nosel"), 2500, ConsoleColor.Red);
+            }
+            if (account_create.Inputs[0].Text.Length == 0)
+            {
+                account_create.Inputs[0].SelectBackgroundColor = ConsoleColor.Red;
+                account_create.Inputs[0].BackgroundColor = ConsoleColor.DarkRed;
+                if (!hasError) controller.Popup(GetIntlString("ERR_empty"), 3000, ConsoleColor.Red);
+            }
+            else if(!hasError)
+            {
+                void AlreadyExists()
+                    => controller.Popup(GetIntlString("SE_account_exists").Replace("$0", account_create.Inputs[0].Text), 2500, ConsoleColor.Red, () => Hide(account_create));
+
+                var act = AccountLookup(account_create.Inputs[0].Text);
+                if (act != null) AlreadyExists();
+                else
+                {
+                    Show("account_stall");
+                    Promise accountPromise = Promise.AwaitPromise(interactor.CreateAccount(account_create.Inputs[0].Text, accountType == 0));
+                    accountPromise.Subscribe = p =>
+                    {
+                        if (bool.Parse(p.Value))
+                        {
+                            controller.Popup(GetIntlString("SE_account_success"), 750, ConsoleColor.Green, () => Hide(account_create));
+                            accountChange = true;
+                        }
+                        else AlreadyExists();
+                        Hide("account_stall");
+                    };
+                }
+            }
+        }
+
+        private void SubmitListener(View listener)
+        {
+            ButtonView view = listener as ButtonView;
+
+            void ShowAccountData(string name, decimal balance, Account.AccountType type)
+            {
+                // Build dialog view manually
+                var show = new DialogView(
+                    new ViewData("DialogView")
+
+                    // Layout parameters
+                    .SetAttribute("padding_left", 2)
+                    .SetAttribute("padding_right", 2)
+                    .SetAttribute("padding_top", 1)
+                    .SetAttribute("padding_bottom", 1)
+                    .SetAttribute("border", (int)ConsoleColor.DarkGreen)
+
+                    // Option buttons
+                    .AddNested(new ViewData("Options").AddNestedSimple("Option", GetIntlString("GENERIC_dismiss")))
+
+                    // Message
+                    .AddNestedSimple("Text",
+                        GetIntlString("SE_info")
+                            .Replace("$0", name)
+                            .Replace("$1", GetIntlString(type == Account.AccountType.Savings ? "SE_acc_saving" : "SE_acc_checking"))
+                            .Replace("$2", balance.ToTruncatedString())),
+
+                    // No translation (it's already handled)
+                    LangManager.NO_LANG);
+
+                show.RegisterSelectListener((_, s, l) => Hide(show));
+                Show(show);
+            }
+
+            // TODO: Show account info
+            var account = AccountLookup(view.Text);
+            if (account == null)
+            {
+                // TODO: Get account data from server + cache data
+                Show("data_fetch");
+                Promise info_promise = Promise.AwaitPromise(interactor.AccountInfo(view.Text));
+                info_promise.Subscribe = evt =>
+                {
+                    Hide("data_fetch");
+                    if (evt.Value.StartsWith("ERROR") || !Account.TryParse(evt.Value, out var act))
+                        controller.Popup(GetIntlString("GENERIC_error"), 3000, ConsoleColor.Red);
+                    else
+                    {
+                        // Cache result (don't cache savings accounts because their value updates pretty frequently)
+                        if (act.type != Account.AccountType.Savings) accountDataCache.Enqueue(new Tuple<string, Account>(view.Text, act));
+                        ShowAccountData(view.Text, act.balance, act.type);
+                    }
+
+                };
+            }
+            else ShowAccountData(account.Item1, account.Item2.balance, account.Item2.type);
         }
     }
 }
