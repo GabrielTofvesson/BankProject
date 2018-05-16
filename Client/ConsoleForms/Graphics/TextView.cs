@@ -116,44 +116,6 @@ namespace Client.ConsoleForms.Graphics
             }
             Done:
             return generate.ToArray();
-            for (int i = 0; i < text.Length; ++i)
-            {
-                if (generate.Count == 0)
-                {
-                    string[] split = Subsplit(text[i], maxWidth);
-                    for (int j = 0; j < split.Length; ++j)
-                        if (!generate.Add(split[j]))
-                            goto Generated;
-                }
-                else
-                {
-                    if (WillSubSplit(text[i], maxWidth))
-                    {
-                        int startAdd = 0;
-                        string[] split;
-                        if (generate[generate.Count - 1].Length != maxWidth)
-                        {
-                            startAdd = 1;
-                            split = Subsplit(generate[generate.Count - 1] + " " + text[i], maxWidth);
-                            generate[generate.Count - 1] = split[0];
-                        }
-                        else split = Subsplit(text[i], maxWidth);
-                        for (int j = startAdd; j < split.Length; ++j)
-                            if (!generate.Add(split[j]))
-                                goto Generated;
-                    }
-                    else
-                    {
-                        if (generate[generate.Count - 1].Length + text[i].Length < maxWidth)
-                            generate[generate.Count - 1] += " " + text[i];
-                        else if (!generate.Add(text[i]))
-                            break;
-                    }
-                }
-            }
-
-            Generated:
-            return generate.ToArray();
         }
 
         private static string[] Subsplit(string s, int max)

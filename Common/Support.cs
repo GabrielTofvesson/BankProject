@@ -203,6 +203,15 @@ namespace Tofvesson.Crypto
             return result;
         }
 
+        public static string ToTruncatedString(this decimal d, int maxdecimals = 3)
+        {
+            if (maxdecimals < 0) maxdecimals = 0;
+            StringBuilder builder = new StringBuilder(d.ToString());
+            int decimalIdx = builder.IndexOf('.');
+            if (builder.Length - decimalIdx - 1 > maxdecimals) builder.Length = decimalIdx + maxdecimals + 1;
+            if (maxdecimals == 0) --builder.Length;
+            return builder.ToString();
+        }
 
 
         //  --    Net    --
@@ -420,6 +429,14 @@ namespace Tofvesson.Crypto
 
 
         //  --    Misc    --
+        public static int IndexOf(this StringBuilder s, char c)
+        {
+            for (int i = 0; i < s.Length; ++i)
+                if (s[i] == c)
+                    return i;
+            return -1;
+        }
+
         // Allows deconstruction when iterating over a collection of Tuples
         public static void Deconstruct<T1, T2>(this Tuple<T1, T2> tuple, out T1 key, out T2 value)
         {

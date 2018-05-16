@@ -102,6 +102,11 @@ Till kontot: $2
 	<Entry name="SE_pwdu">Uppdatera lösenord</Entry>
     <Entry name="SE_exit">Logga ut</Entry>
     <Entry name="SE_open">Öppna ett konto</Entry>
+    <Entry name="SE_acc_label">Välj kontotyp:</Entry>
+    <Entry name="SE_acc_sel">Välj...</Entry>
+    <Entry name="SE_acc_saving">Sparkonto</Entry>
+    <Entry name="SE_acc_checking">Lönekonto</Entry>
+    <Entry name="SE_acc_nosel">Vänligen välj en kontotyp!</Entry>
     <Entry name="SE_close">Stäng konto</Entry>
     <Entry name="SE_delete">Radera användare</Entry>
     <Entry name="SE_delete_warn">VARNING: Detta kommer att radera den nuvarande användaren

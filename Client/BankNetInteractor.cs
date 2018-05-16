@@ -215,10 +215,10 @@ namespace Client
             return RegisterPromise(pID);
         }
 
-        public async virtual Task<Promise> CreateAccount(string accountName)
+        public async virtual Task<Promise> CreateAccount(string accountName, bool checking)
         {
             await StatusCheck(true);
-            client.Send(CreateCommandMessage("Account_Create", DataSet(sessionID, accountName), out long PID));
+            client.Send(CreateCommandMessage("Account_Create", DataSet(sessionID, accountName, checking), out long PID));
             return RegisterEventPromise(PID, p =>
             {
                 RefreshSession(p);

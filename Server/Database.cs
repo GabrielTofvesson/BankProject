@@ -193,7 +193,9 @@ namespace Server
             {
                 writer.WriteStartElement("Account");
                 writer.WriteElementString("Name", acc.name);
-                writer.WriteElementString("Balance", acc.balance.ToString());
+                writer.WriteElementString("Balance", acc.UncomputedBalance.ToString());
+                writer.WriteElementString("ChangeTime", acc.dateUpdated.ToString());
+                writer.WriteElementString("Type", ((int)acc.type).ToString());
                 foreach (var tx in acc.History)
                 {
                     writer.WriteStartElement("Transaction");
@@ -284,7 +286,7 @@ namespace Server
             return null;
         }
 
-        public bool AddTransaction(string sender, string recipient, decimal amount, string fromAccount, string toAccount, string message = null)
+        public bool AddTransaction(string sender, string recipient, decimal amount, string fromAccount, string toAccount, decimal ratePerDay, string message = null)
         {
             User from = FirstUser(u => u.Name.Equals(sender));
             User to = FirstUser(u => u.Name.Equals(recipient));
@@ -297,18 +299,18 @@ namespace Server
                 (from == null && !to.IsAdministrator) ||
                 toAcc == null ||
                 (from != null && fromAcc == null) ||
-                (from != null && fromAcc.balance<amount)
+                (from != null && fromAcc.ComputeBalance(ratePerDay)<amount)
                 ) return false;
 
             Transaction tx = new Transaction(from == null ? "System" : from.Name, to.Name, amount, message, fromAccount, toAccount);
             toAcc.History.Add(tx);
-            toAcc.balance += amount;
+            toAcc.UpdateBalance(amount, ratePerDay);
             AddUser(to, false); // Let's not flush unnecessarily
             //UpdateUser(to); // For debugging: Force a flush
             if (from != null)
             {
                 fromAcc.History.Add(tx);
-                fromAcc.balance -= amount;
+                fromAcc.UpdateBalance(-amount, ratePerDay);
                 AddUser(from, false);
             }
             return true;
@@ -488,34 +490,64 @@ namespace Server
             }
         }
 
-        public class Account
+        public sealed class Account
         {
+            public enum AccountType { Savings, Checking }
             public User owner;
-            public decimal balance;
+            private decimal _balance;
             public string name;
             public List<Transaction> History { get; }
-            public Account(User owner, decimal balance, string name)
+            public AccountType type;
+            public long dateUpdated;
+            public decimal UncomputedBalance {
+                get => _balance;
+
+                set
+                {
+                    _balance = value;
+                    dateUpdated = DateTime.Now.Ticks;
+                }
+            }
+
+            public Account(User owner, decimal balance, string name, AccountType type, long dateUpdated)
             {
                 History = new List<Transaction>();
                 this.owner = owner;
-                this.balance = balance;
+                this._balance = balance;
                 this.name = name;
+                this.type = type;
+                this.dateUpdated = dateUpdated;
             }
-            public Account(Account copy) : this(copy.owner, copy.balance, copy.name)
+
+            // Create a deep copy of the given account
+            public Account(Account copy) : this(copy.owner, copy._balance, copy.name, copy.type, copy.dateUpdated)
             {
                 // Value copy, not reference copy
                 foreach (var tx in copy.History)
                     History.Add(new Transaction(tx.from, tx.to, tx.amount, tx.meta, tx.fromAccount, tx.toAccount));
             }
+
+            // Add a transaction to the tx history
             public Account AddTransaction(Transaction tx)
             {
                 History.Add(tx);
                 return this;
             }
 
-            public override string ToString()
+            // Compute balance growth with a daily rate for savings accounts (no growth for checking accounts)
+            public decimal ComputeBalance(decimal ratePerDay)
+                => _balance + (type==AccountType.Savings ? (((decimal)(DateTime.Now.Ticks - dateUpdated) / TimeSpan.TicksPerDay) * ratePerDay * _balance) : 0);
+
+            public decimal UpdateBalance(decimal change, decimal ratePerDay)
             {
-                StringBuilder builder = new StringBuilder(balance.ToString());
+                decimal d = ComputeBalance(ratePerDay) + change;
+                dateUpdated = DateTime.Now.Ticks;
+                return _balance = d;
+            }
+
+            public string ToString(decimal ratePerDay)
+            {
+                StringBuilder builder = new StringBuilder(ComputeBalance(ratePerDay).ToString()).Append('&').Append((int)type); // Format: balance&type (ex: 123.45&0)
                 foreach (var tx in History)
                 {
                     builder
@@ -530,7 +562,6 @@ namespace Server
                     .Append('&')
                     .Append(tx.amount.ToString());
                     if (tx.meta != null) builder.Append('&').Append(tx.meta.ToBase64String());
-                    //builder.Append('}');
                 }
                 return builder.ToString();
             }
@@ -545,8 +576,7 @@ namespace Server
             public string Salt { get; internal set; }
             public List<Account> accounts = new List<Account>();
 
-            private User()
-            { }
+            private User() { }
 
             public User(User copy)
             {
@@ -586,7 +616,9 @@ namespace Server
                 {
                     Entry acc = new Entry("Account")
                         .AddNested("Name", account.name)
-                        .AddNested(new Entry("Balance", account.balance.ToString()).AddAttribute("omit", "true"));
+                        .AddNested(new Entry("Balance", account.UncomputedBalance.ToString()).AddAttribute("omit", "true"))
+                        .AddNested("ChangeTime", account.dateUpdated.ToString())
+                        .AddNested("Type", ((int)account.type).ToString());
                     foreach (var transaction in account.History)
                     {
                         Entry tx =
@@ -618,6 +650,8 @@ namespace Server
                     {
                         string name = null;
                         decimal balance = 0;
+                        long changeTime = -1;
+                        Account.AccountType type = Account.AccountType.Savings;
                         List<Transaction> history = new List<Transaction>();
                         foreach (var accountData in entry.NestedEntries)
                         {
@@ -650,13 +684,15 @@ namespace Server
                                 else history.Add(new Transaction(from, to, amount, meta, fromAccount, toAccount));
                             }
                             else if (accountData.Name.Equals("Balance")) balance = decimal.TryParse(accountData.Text, out decimal l) ? l : 0;
+                            else if (accountData.Name.Equals("ChangeTime")) changeTime = long.TryParse(accountData.Text, out changeTime) ? changeTime : -1;
+                            else if (accountData.Name.Equals("Type") && int.TryParse(accountData.Text, out int result)) type = (Account.AccountType)result;
                         }
                         if (name == null || balance < 0)
                         {
                             Output.Fatal($"Found errant account entry! Detected user name: {user.Name}");
                             return null; // This is a hard error
                         }
-                        Account a = new Account(user, balance, name);
+                        Account a = new Account(user, balance, name, type, changeTime);
                         a.History.AddRange(history);
                         user.AddAccount(a);
                     }

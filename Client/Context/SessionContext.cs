@@ -21,14 +21,12 @@ namespace Client
         private bool scheduleDestroy;
         private Promise userDataGetter;
         private Promise accountsGetter;
-        private Promise remoteAccountsGetter;
-        private Promise remoteUserGetter;
         private List<string> accounts = null;
         private string username;
         private bool isAdministrator = false;
         
         // Stores personal accounts
-        private readonly FixedQueue<Tuple<string, decimal>> accountDataCache = new FixedQueue<Tuple<string, decimal>>(64);
+        private readonly FixedQueue<Tuple<string, Account>> accountDataCache = new FixedQueue<Tuple<string, Account>>(64);
 
         // Stores remote account data
         private readonly FixedQueue<Tuple<string, string>> remoteUserCache = new FixedQueue<Tuple<string, string>>(8);
@@ -52,7 +50,7 @@ namespace Client
             {
                 ButtonView view = listener as ButtonView;
 
-                void ShowAccountData(string name, decimal balance)
+                void ShowAccountData(string name, decimal balance, Account.AccountType type)
                 {
                     // Build dialog view manually
                     var show = new DialogView(
@@ -69,7 +67,11 @@ namespace Client
                         .AddNested(new ViewData("Options").AddNestedSimple("Option", GetIntlString("GENERIC_dismiss")))
 
                         // Message
-                        .AddNestedSimple("Text", GetIntlString("SE_info").Replace("$0", name).Replace("$1", balance.ToString())),
+                        .AddNestedSimple("Text",
+                            GetIntlString("SE_info")
+                                .Replace("$0", name)
+                                .Replace("$1", GetIntlString(type == Account.AccountType.Savings ? "SE_acc_saving" : "SE_acc_checking"))
+                                .Replace("$2", balance.ToTruncatedString())),
 
                         // No translation (it's already handled)
                         LangManager.NO_LANG);
@@ -92,13 +94,14 @@ namespace Client
                             controller.Popup(GetIntlString("GENERIC_error"), 3000, ConsoleColor.Red);
                         else
                         {
-                            accountDataCache.Enqueue(new Tuple<string, decimal>(view.Text, act.balance)); // Cache result
-                            ShowAccountData(view.Text, act.balance);
+                            // Cache result (don't cache savings accounts because their value updates pretty frequently)
+                            if (act.type!=Account.AccountType.Savings) accountDataCache.Enqueue(new Tuple<string, Account>(view.Text, act));
+                            ShowAccountData(view.Text, act.balance, act.type);
                         }
 
                     };
                 }
-                else ShowAccountData(account.Item1, account.Item2);
+                else ShowAccountData(account.Item1, account.Item2.balance, account.Item2.type);
             }
 
             options.GetView<ButtonView>("view").SetEvent(v =>
@@ -170,13 +173,42 @@ namespace Client
 
             // Actual "create account" input box thingy
             var input = GetView<InputView>("account_create");
-            input.SubmissionsListener = __ =>
+
+            int accountType = -1;
+            ListView accountTypes = null;
+            accountTypes = GenerateList(
+                new string[] {
+                    GetIntlString("SE_acc_checking"),
+                    GetIntlString("SE_acc_saving")
+                }, v =>
+                {
+                    accountType = accountTypes.SelectedView;
+                    input.Inputs[1].Text = (v as ButtonView).Text;
+                    CreateAccount();
+                }, true);
+            input.Inputs[1].Text = GetIntlString("SE_acc_sel");
+            input.SubmissionsListener = inputView =>
             {
+                if (inputView.SelectedField == 1)
+                    Show(accountTypes); // Show account type selection menu
+                else CreateAccount();
+                
+            };
+            void CreateAccount()
+            {
+                bool hasError = false;
+                if (accountType == -1)
+                {
+                    hasError = true;
+                    input.Inputs[1].SelectBackgroundColor = ConsoleColor.Red;
+                    input.Inputs[1].BackgroundColor = ConsoleColor.DarkRed;
+                    controller.Popup(GetIntlString("SE_acc_nosel"), 2500, ConsoleColor.Red);
+                }
                 if (input.Inputs[0].Text.Length == 0)
                 {
                     input.Inputs[0].SelectBackgroundColor = ConsoleColor.Red;
                     input.Inputs[0].BackgroundColor = ConsoleColor.DarkRed;
-                    controller.Popup(GetIntlString("ERR_empty"), 3000, ConsoleColor.Red);
+                    if(!hasError) controller.Popup(GetIntlString("ERR_empty"), 3000, ConsoleColor.Red);
                 }
                 else
                 {
@@ -188,7 +220,7 @@ namespace Client
                     else
                     {
                         Show("account_stall");
-                        Promise accountPromise = Promise.AwaitPromise(interactor.CreateAccount(input.Inputs[0].Text));
+                        Promise accountPromise = Promise.AwaitPromise(interactor.CreateAccount(input.Inputs[0].Text, accountType==0));
                         accountPromise.Subscribe = p =>
                         {
                             if (bool.Parse(p.Value))
@@ -201,11 +233,17 @@ namespace Client
                         };
                     }
                 }
-            };
+            }
+
             input.InputListener = (v, c, i, t) =>
             {
                 c.BackgroundColor = v.DefaultBackgroundColor;
                 c.SelectBackgroundColor = v.DefaultSelectBackgroundColor;
+                if (v.IndexOf(c) == 1)
+                {
+                    Show(accountTypes);
+                    return false; // Don't process key event
+                }
                 return true;
             };
 
@@ -251,7 +289,7 @@ namespace Client
                         break;
                     case 1:
                         Show("data_fetch");
-                        remoteUserGetter = Promise.AwaitPromise(interactor.ListUsers());
+                        Promise remoteUserGetter = Promise.AwaitPromise(interactor.ListUsers());
                         remoteUserGetter.Subscribe = p =>
                         {
                             remoteUserGetter.Unsubscribe();
@@ -266,10 +304,10 @@ namespace Client
                         else
                         {
                             Show("data_fetch");
-                            remoteAccountsGetter = Promise.AwaitPromise(interactor.ListAccounts(user));
+                            Promise remoteAccountsGetter = Promise.AwaitPromise(interactor.ListAccounts(user));
                             remoteAccountsGetter.Subscribe = p =>
                             {
-                                remoteUserGetter.Unsubscribe();
+                                remoteAccountsGetter.Unsubscribe();
                                 Hide("data_fetch");
 
                                 Show(GenerateList(p.Value.Split('&').ForEach(Support.FromBase64String), sel => v.Inputs[2].Text = acc2 = (sel as ButtonView).Text, true));
@@ -365,12 +403,10 @@ namespace Client
             }
         }
 
-        private ListView GenerateList(string[] data, SubmissionEvent onclick, bool exitOnSubmit = false)
+        private ListView GenerateList(string[] data, SubmissionEvent onclick, bool exitOnSubmit = false, bool hideOnBack = true)
         {
-            var list = GetView<ListView>("account_show");
-            list.RemoveIf(t => !t.Item1.Equals("close"));
-            ButtonView exit = list.GetView<ButtonView>("close");
-            exit.SetEvent(_ => Hide(list));
+            //var list = GetView<ListView>("account_show");
+            var list = new ListView(new ViewData("ListView").SetAttribute("padding_left", 2).SetAttribute("padding_right", 2).SetAttribute("border", 8), LangManager.NO_LANG);
             if (data.Length == 1 && data[0].Length == 0) return list;
             bool b = data.Length == 1 && data[0].Length == 0;
             Tuple<string, View>[] listData = new Tuple<string, View>[data.Length - (b ? 1 : 0)];
@@ -385,8 +421,8 @@ namespace Client
                     });
                     listData[i] = new Tuple<string, View>(t.Text, t);
                 }
-            list.RemoveIf(t => !t.Item1.Equals("close"));
             list.AddViews(0, listData); // Insert generated buttons before predefined "close" button
+            if (hideOnBack) list.OnBackEvent = v => Hide(v);
             return list;
         }
 
@@ -422,7 +458,7 @@ namespace Client
             controller.Popup(GetIntlString($"SE_{(automatic ? "auto" : "")}lo"), 2500, ConsoleColor.DarkMagenta, () => manager.LoadContext(new NetContext(manager)));
         }
 
-        private Tuple<string, decimal> AccountLookup(string name)
+        private Tuple<string, Account> AccountLookup(string name)
         {
             foreach (var cacheEntry in accountDataCache)
                 if (cacheEntry.Item1.Equals(name))

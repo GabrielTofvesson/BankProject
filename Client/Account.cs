@@ -8,14 +8,17 @@ namespace Client
 {
     public class Account
     {
+        public enum AccountType { Savings, Checking }
         public decimal balance;
         public List<Transaction> History { get; }
-        public Account(decimal balance)
+        public AccountType type;
+        public Account(decimal balance, AccountType type)
         {
             History = new List<Transaction>();
             this.balance = balance;
+            this.type = type;
         }
-        public Account(Account copy) : this(copy.balance)
+        public Account(Account copy) : this(copy.balance, copy.type)
             => History.AddRange(copy.History);
         public Account AddTransaction(Transaction tx)
         {
@@ -26,9 +29,10 @@ namespace Client
         public static Account Parse(string s)
         {
             var data = s.Split('{');
-            if(!decimal.TryParse(data[0], out var balance))
+            var attr = data[0].Split('&');
+            if(attr.Length!=2 || !decimal.TryParse(attr[0], out var balance) || !int.TryParse(attr[1], out var type))
                 throw new ParseException("String did not represent a valid account");
-            Account a = new Account(balance);
+            Account a = new Account(balance, (AccountType)type);
             for (int i = 1; i < data.Length; ++i)
                 a.AddTransaction(Transaction.Parse(data[i]));
             return a;
@@ -38,7 +42,7 @@ namespace Client
         {
             try
             {
-                account = Account.Parse(s);
+                account = Parse(s);
                 return true;
             }
             catch

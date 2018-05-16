@@ -97,6 +97,11 @@ Is this correct?</Entry>
 	<Entry name="SE_pwdu">Update password</Entry>
     <Entry name="SE_exit">Log out</Entry>
     <Entry name="SE_open">Open an account</Entry>
+    <Entry name="SE_acc_label">Select account type:</Entry>
+    <Entry name="SE_acc_sel">Select...</Entry>
+    <Entry name="SE_acc_saving">Savings account</Entry>
+    <Entry name="SE_acc_checking">Checking account</Entry>
+    <Entry name="SE_acc_nosel">Please select an account type!</Entry>
     <Entry name="SE_close">Close account</Entry>
     <Entry name="SE_delete">Delete user account</Entry>
     <Entry name="SE_delete_warn">WARNING: This will delete the current user and all connected accounts!

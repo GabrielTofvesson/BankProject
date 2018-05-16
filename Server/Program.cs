@@ -24,6 +24,7 @@ Use command 'help' to get a list of available commands";
         // Specific error reference localization prefix
         private const string VERBOSE_RESPONSE = "@string/REMOTE_";
         public static int verbosity = 2;
+        const decimal ratePerDay = 0.5M; // Savings account has a growth rate of 150% per day
         public static void Main(string[] args)
         {
             // Create a client session manager and allow sessions to remain valid for up to 5 minutes of inactivity (300 seconds)
@@ -220,16 +221,23 @@ Use command 'help' to get a list of available commands";
                             }
                         case "Account_Create": // Create an account
                             {
-                                if (!ParseDataPair(cmd[1], out string session, out string name) || // Get session id and account name
-                                    !GetUser(session, out var user) || // Get user associated with session id
-                                    GetAccount(name, user, out var account))
+                                if (ParseDataSet(cmd[1], out string[] dataset)==-1 || // Get session id and account name
+                                    !GetUser(dataset[0], out var user) || // Get user associated with session id
+                                    GetAccount(dataset[1], user, out var account) || // Check if an account with this name already exists
+                                    !bool.TryParse(dataset[2], out bool checking)) // Check what account type to create
                                 {
                                     // Don't print input data to output in case sensitive information was included
-                                    Output.Error($"Failed to create account \"{name}\" for user \"{manager.GetUser(session).Name}\" (sessionID={session})");
+                                    Output.Error($"Failed to create account \"{dataset[1]}\" for user \"{manager.GetUser(dataset[0]).Name}\" (sessionID={dataset[0]})");
                                     return ErrorResponse(id);
                                 }
-                                manager.Refresh(session);
-                                user.accounts.Add(new Database.Account(user, 0, name));
+                                manager.Refresh(dataset[0]);
+                                user.accounts.Add(new Database.Account(
+                                    user,
+                                    0,
+                                    dataset[1],
+                                    checking ? Database.Account.AccountType.Checking : Database.Account.AccountType.Savings,
+                                    DateTime.Now.Ticks
+                                    ));
                                 db.UpdateUser(user); // Notify database of the update
                                 return GenerateResponse(id, true);
                             }
@@ -261,7 +269,7 @@ Use command 'help' to get a list of available commands";
                                     error += "unprivsysins";    // Unprivileged request for system-sourced transfer
                                 else if (!decimal.TryParse(data[4], out amount) || amount < 0)
                                     error += "badbalance";      // Given sum was not a valid amount
-                                else if ((!user.IsAdministrator && !systemInsert && amount > account.balance))
+                                else if ((!user.IsAdministrator && !systemInsert && amount > account.ComputeBalance(ratePerDay)))
                                     error += "insufficient";    // Insufficient funds in the source account
                                 
                                 // Checks if an error ocurred and handles such a situation appropriately
@@ -282,6 +290,7 @@ Use command 'help' to get a list of available commands";
                                         amount,
                                         account.name,
                                         tAccount.name,
+                                        ratePerDay,
                                         data.Length == 6 ? data[5] : null
                                     ));
                             }
@@ -291,8 +300,8 @@ Use command 'help' to get a list of available commands";
                                 Database.Account account = null;
                                 if (!ParseDataPair(cmd[1], out string session, out string name) || // Get session id and account name
                                     !GetUser(session, out user) || // Get user associated with session id
-                                    !GetAccount(name, user, out account) ||
-                                    account.balance != 0)
+                                    !GetAccount(name, user, out account)/* ||
+                                    account.UncomputedBalance != 0*/) // Get uncomputed balance since computing the balance would mae it impossible to close accounts (deprecated)
                                 {
                                     // Don't print input data to output in case sensitive information was included
                                     Output.Error($"Recieved problematic session id or account name!");
@@ -321,9 +330,9 @@ Use command 'help' to get a list of available commands";
                                     return ErrorResponse(id, (user == null ? "badsession" : account == null ? "badacc" : "badmsg"));
                                 }
                                 manager.Refresh(session);
-                                // Response example: "123.45{Sm9obiBEb2U=&Sm9obnMgQWNjb3VudA==&SmFuZSBEb2U=&SmFuZXMgQWNjb3VudA==&123.45&SGV5IHRoZXJlIQ=="
-                                // Exmaple data: balance=123.45, Transaction{to="John Doe", toAccount="Johns Account", from="Jane Doe", fromAccount="Janes Account", amount=123.45, meta="Hey there!"}
-                                return GenerateResponse(id, account.ToString());
+                                // Response example: "123.45&0{Sm9obiBEb2U=&Sm9obnMgQWNjb3VudA==&SmFuZSBEb2U=&SmFuZXMgQWNjb3VudA==&123.45&SGV5IHRoZXJlIQ=="
+                                // Exmaple data: balance=123.45, accountType=Savings, Transaction{to="John Doe", toAccount="Johns Account", from="Jane Doe", fromAccount="Janes Account", amount=123.45, meta="Hey there!"}
+                                return GenerateResponse(id, account.ToString(ratePerDay));
                             }
                         case "Account_List": // List accounts associated with a certain user (doesn't give more than account names)
                             {
@@ -518,6 +527,7 @@ Use command 'help' to get a list of available commands";
             // Set up a persistent terminal-esque input design
             Output.OnNewLine = () => Output.WriteOverwritable(">> ");
             Output.Raw(CONSOLE_MOTD);
+            Output.Raw($"Rent rate set to: {ratePerDay} (growth of {(1+ratePerDay)*100}% per day)");
             Output.OnNewLine();
 
             // Server command loop
