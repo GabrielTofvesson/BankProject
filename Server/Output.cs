@@ -67,6 +67,8 @@ namespace Server
                 if (newline)
                 {
                     writer.WriteLine();
+                    Console.ForegroundColor = f1;
+                    Console.BackgroundColor = b1;
                     readStart_x = 0;
                     ++readStart_y;
                     OnNewLine?.Invoke();
@@ -74,9 +76,12 @@ namespace Server
                     readStart_x = (short)Console.CursorLeft;
                     if (reading) Console.Out.Write(read);
                 }
-                else readStart_x = (short)Console.CursorLeft;
-                Console.ForegroundColor = f1;
-                Console.BackgroundColor = b1;
+                else
+                {
+                    readStart_x = (short)Console.CursorLeft;
+                    Console.ForegroundColor = f1;
+                    Console.BackgroundColor = b1;
+                }
             }
         }
 

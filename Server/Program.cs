@@ -25,15 +25,16 @@ Use command 'help' to get a list of available commands";
         private const string VERBOSE_RESPONSE = "@string/REMOTE_";
         public static int verbosity = 2;
         const decimal ratePerDay = 0.5M; // Savings account has a growth rate of 150% per day
+
+        // Initialize the database
+        public static readonly Database db = new Database("BankDB", "Resources");
         public static void Main(string[] args)
         {
             // Create a client session manager and allow sessions to remain valid for up to 5 minutes of inactivity (300 seconds)
             SessionManager manager = new SessionManager(300 * TimeSpan.TicksPerSecond, 20);
 
-            // Initialize the database
-            Database db = new Database("BankDB", "Resources");
             SetConsoleCtrlHandler(i => {
-                if (i == 2) db.Flush(); // Ensures that the database is flushed before the program exits
+                db.Flush(); // Ensures that the database is flushed before the program exits
                 return false;
             }, true);
 
@@ -547,7 +548,7 @@ Use command 'help' to get a list of available commands";
 
         // Handles unexpected console close events (kernel event hook for window close event)
         private delegate bool EventHandler(int eventType);
-        [DllImport("kernel32.dll")]
+        [DllImport("Kernel32.dll", SetLastError = true)]
         private static extern bool SetConsoleCtrlHandler(EventHandler callback, bool add);
     }
 }

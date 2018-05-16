@@ -398,21 +398,25 @@ namespace Client
         {
             //var list = GetView<ListView>("account_show");
             var list = new ListView(new ViewData("ListView").SetAttribute("padding_left", 2).SetAttribute("padding_right", 2).SetAttribute("border", 8), LangManager.NO_LANG);
-            if (data.Length == 1 && data[0].Length == 0) return list;
-            bool b = data.Length == 1 && data[0].Length == 0;
-            Tuple<string, View>[] listData = new Tuple<string, View>[data.Length - (b ? 1 : 0)];
-            if (!b)
-                for (int i = 0; i < listData.Length; ++i)
+            //if (data.Length == 1 && data[0].Length == 0) data = new string[0];
+            Tuple<string, View>[] listData = new Tuple<string, View>[data.Length - ((data.Length == 1 && data[0].Length == 0) ? 1 : 0)];
+            for (int i = 0; i < listData.Length; ++i)
+            {
+                ButtonView t = new ButtonView(new ViewData("ButtonView").AddNestedSimple("Text", data[i]), LangManager.NO_LANG); // Don't do translations
+                t.SetEvent(v =>
                 {
-                    ButtonView t = new ButtonView(new ViewData("ButtonView").AddNestedSimple("Text", data[i]), LangManager.NO_LANG); // Don't do translations
-                    t.SetEvent(v =>
-                    {
-                        onclick?.Invoke(v);
-                        if (exitOnSubmit) Hide(list);
-                    });
-                    listData[i] = new Tuple<string, View>(t.Text, t);
-                }
-            list.AddViews(0, listData); // Insert generated buttons before predefined "close" button
+                    onclick?.Invoke(v);
+                    if (exitOnSubmit) Hide(list);
+                });
+                listData[i] = new Tuple<string, View>(t.Text, t);
+            }
+            if (listData.Length > 0) list.AddViews(0, listData);
+            else
+            {
+                ButtonView close = new ButtonView(new ViewData("ButtonView").AddNestedSimple("Text", GetIntlString("GENERIC_dismiss")), LangManager.NO_LANG);
+                close.SetEvent(_ => Hide(list));
+                list.AddView(close, "close");
+            }
             if (hideOnBack) list.OnBackEvent = v => Hide(v);
             return list;
         }
