@@ -471,21 +471,37 @@ Use command 'help' to get a list of available commands";
                 }), "Get or set verbosity level: DEBUG, INFO, FATAL (alternatively enter 0, 1 or 2 respectively)")
                 .Append(new Command("sess")                                                                                     // Display active sessions
                 .WithParameter("sessionID", 'r', Parameter.ParamType.STRING, true)
+                .WithParameter("username", 'u', Parameter.ParamType.STRING, true)
                 .SetAction(
                     (c, l) => {
                         StringBuilder builder = new StringBuilder();
                         manager.Update(); // Ensure that we don't show expired sessions (artifacts exist until it is necessary to remove them)
-                        foreach (var session in manager.Sessions)
-                            builder
-                                .Append(session.user.Name)
-                                .Append(" : ")
-                                .Append(session.sessionID)
-                                .Append(" : ")
-                                .Append((session.expiry-DateTime.Now.Ticks) /TimeSpan.TicksPerMillisecond)
-                                .Append('\n');
-                        if (builder.Length == 0) builder.Append("There are no active sessions at the moment");
-                        else --builder.Insert(0, "Active sessions:\n").Length;
-                        Output.Raw(builder);
+                        bool r = l.HasFlag('r'), u = l.HasFlag('u');
+                        if(r && u)
+                        {
+                            Output.Error("Cannot refresh session by username AND SessionID!");
+                            return;
+                        }
+                        if((r||u) && !manager.HasSession(l[0].Item1, u))
+                        {
+                            Output.Error("Session could not be found!");
+                            return;
+                        }
+                        if (r||u) Output.Raw($"Session refreshed: {manager.Refresh(l[0].Item1, u)}");
+                        else
+                        {
+                            foreach (var session in manager.Sessions)
+                                builder
+                                    .Append(session.user.Name)
+                                    .Append(" : ")
+                                    .Append(session.sessionID)
+                                    .Append(" : ")
+                                    .Append((session.expiry - DateTime.Now.Ticks) / TimeSpan.TicksPerMillisecond)
+                                    .Append('\n');
+                            if (builder.Length == 0) builder.Append("There are no active sessions at the moment");
+                            else --builder.Insert(0, "Active sessions:\n").Length;
+                            Output.Raw(builder);
+                        }
                     }), "List or refresh active client sessions")
                 .Append(new Command("list").WithParameter(Parameter.Flag('a')).SetAction(                                       // Display users
                     (c, l) => {

@@ -78,6 +78,12 @@ namespace Client.ConsoleForms
             Draw(false);
         }
 
+        public void CloseIf(Predicate<View> p)
+        {
+            for(int i = renderQueue.Count - 1; i>=0; --i)
+                if (p(renderQueue[i].Item1))
+                    CloseView(i);
+        }
         public void CloseTop() => CloseView(renderQueue[renderQueue.Count - 1].Item1);
         public void CloseView(int idx) => CloseView(renderQueue[idx].Item1);
         public void CloseView(View v, bool redraw = true, int maxCloses = -1)

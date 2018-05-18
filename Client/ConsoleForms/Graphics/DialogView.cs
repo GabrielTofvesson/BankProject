@@ -13,6 +13,7 @@ namespace Client.ConsoleForms.Graphics
         public delegate void SelectListener(DialogView view, int selectionIndex, string selection);
 
         protected readonly ViewData[] options;
+        protected readonly int optionsWidth;
         protected int select;
         protected SelectListener listener;
 
@@ -20,6 +21,18 @@ namespace Client.ConsoleForms.Graphics
         {
             get => select;
             set => select = value < 0 ? 0 : value >= options.Length ? options.Length - 1 : value;
+        }
+
+        public override string Text
+        {
+            get => base.Text;
+            set 
+            {
+                base.Text = value;
+                // Since setting the text triggers a rendering recomputation for TextView, we have to recompute rendering for options too
+                if (optionsWidth > ContentWidth) ContentWidth = optionsWidth;
+                ContentHeight += 2;
+            }
         }
         /*
         public override Region Occlusion => new Region(
@@ -47,27 +60,26 @@ namespace Client.ConsoleForms.Graphics
             ViewData optionsData = parameters.Get("Options");
             this.options = optionsData.nestedData.Filter(p => p.Name.Equals("Option")).ToArray();
             this.select = parameters.AttribueAsInt("select");
-            ContentHeight += 2;
+            //ContentHeight += 2;
             select = select < 0 ? 0 : select >= options.Length ? 0 : select;
             SelectColor = (ConsoleColor)parameters.AttribueAsInt("select_color", (int)ConsoleColor.Gray);
             NotSelectColor = (ConsoleColor)parameters.AttribueAsInt("unselect_color", (int)ConsoleColor.White);
+            optionsWidth = ComputeLength(parameters.Get("Options")?.CollectSub("Option") ?? new Tuple<string, string>[0]);
+            if (optionsWidth > ContentWidth) ContentWidth = optionsWidth;
         }
 
         protected override void _Draw(int left, ref int top)
         {
-            //DrawEmptyPadding(left, ref top, padding.Top());
             base.DrawContent(left, ref top);
             DrawEmptyPadding(left, ref top, 1);
             DrawOptions(left, ref top);
-            //DrawEmptyPadding(left, ref top, padding.Bottom());
         }
 
         protected virtual void DrawOptions(int left, ref int top)
         {
-            int pl = padding.Left(), pr = padding.Right();
             Console.SetCursorPosition(left, top++);
 
-            int pad = ContentWidth - options.CollectiveLength() - options.Length;// + pl + pr;
+            int pad = ContentWidth - options.CollectiveLength() - options.Length;
             int lpad = (int)(pad / 2f);
             Console.BackgroundColor = BackgroundColor;
             Console.Write(Filler(' ', lpad));

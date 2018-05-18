@@ -13,12 +13,13 @@ namespace Client.ConsoleForms.Graphics
         protected string[] text;
         protected string[] text_render;
         protected int maxWidth, maxHeight;
+        protected readonly bool enforceWidth;
 
         private string _text;
-        public string Text
+        public virtual string Text
         {
             get => _text;
-            protected set
+            set
             {
                 _text = value;
                 text = _text.Split(' ');
@@ -27,7 +28,7 @@ namespace Client.ConsoleForms.Graphics
                 text_render = ComputeTextDimensions(this.text);
                 int actualWidth = 0;
                 foreach (var t in text_render) if (actualWidth < t.Length) actualWidth = t.Length;
-                ContentWidth = maxWidth;// + padding.Left() + padding.Right();
+                ContentWidth = enforceWidth ? maxWidth : actualWidth;// + padding.Left() + padding.Right();
                 ContentHeight = text_render.Length;// + padding.Top() + padding.Bottom();
                 Dirty = true;
             }
@@ -42,6 +43,8 @@ namespace Client.ConsoleForms.Graphics
                 )
             );
 
+        //TODO: Add contentocclusion
+
         //public char Border { get; set; }
         //public ConsoleColor BorderColor { get; set; }
 
@@ -52,7 +55,8 @@ namespace Client.ConsoleForms.Graphics
             foreach (var t in parameters.NestedText("Text").Split('\n'))
                 if (t.Length > widest)
                     widest = t.Length;
-            this.maxWidth = parameters.AttribueAsInt("width") < 1 ? widest : parameters.AttribueAsInt("width");
+            enforceWidth = parameters.AttribueAsInt("width") > 0;
+            this.maxWidth = enforceWidth ? parameters.AttribueAsInt("width") : widest;
             this.maxHeight = parameters.AttribueAsInt("height", -1);
 
             this.text = (Text = parameters.NestedText("Text")).Split(' ');

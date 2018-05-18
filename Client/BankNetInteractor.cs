@@ -132,8 +132,9 @@ namespace Client
                 bool b = !p.Value.StartsWith("ERROR");
                 if (b) // Set proper state before notifying listener
                 {
-                    RefreshTimeout();
                     sessionID = p.Value;
+                    RefreshTimeout();
+                    SetAutoRefresh(true);
                 }
                 PostPromise(p.handler, b);
                 return false;
@@ -203,7 +204,7 @@ namespace Client
             RefreshTimeout();
             return RegisterEventPromise(pID, p =>
             {
-                p.handler.Value = p.Value.StartsWith("ERROR").ToString();
+                PostPromise(p.handler, !p.Value.StartsWith("ERROR"));
                 return false;
             });
         }
@@ -350,8 +351,7 @@ namespace Client
 
         protected void SetAutoRefresh(bool doAR)
         {
-            if (RefreshSessions == doAR) return;
-            if (RefreshSessions = doAR)
+            if (RefreshSessions = doAR && (sessionChecker==null || sessionChecker.Status!=TaskStatus.Running))
             {
                 triggerRefreshCancel = false;
                 sessionChecker = new Task(DoRefresh);
@@ -367,7 +367,14 @@ namespace Client
                 return;
             }
             // Refresher calls refresh 1500ms before expiry (or asap if less time is available)
-            Task.Delay((int)((Math.Min(0, loginTimeout - DateTime.Now.Ticks - 1500)) / TimeSpan.TicksPerMillisecond));
+            try
+            {
+                Task.Delay((int)Math.Max(1, ((loginTimeout - DateTime.Now.Ticks) / TimeSpan.TicksPerMillisecond) - 1500)).Wait();
+            }
+            catch
+            {
+                System.Diagnostics.Debug.WriteLine("OOF");
+            }
             if (triggerRefreshCancel)
             {
                 triggerRefreshCancel = false;
@@ -377,17 +384,20 @@ namespace Client
             {
                 try
                 {
-                    Refresh();
+                    Promise p = Promise.AwaitPromise(Refresh());
+                    p.Subscribe = refreshResult =>
+                    {
+                        if (RefreshSessions && bool.Parse(refreshResult.Value))
+                        {
+                            sessionChecker = new Task(DoRefresh);
+                            sessionChecker.Start();
+                        }
+                    };
                 }
                 catch
                 {
                     // Session probably died
                     return;
-                }
-                if (RefreshSessions)
-                {
-                    sessionChecker = new Task(DoRefresh);
-                    sessionChecker.Start();
                 }
             }
         }

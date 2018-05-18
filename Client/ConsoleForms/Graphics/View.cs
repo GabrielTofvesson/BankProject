@@ -28,11 +28,12 @@ namespace Client.ConsoleForms.Graphics
         public ConsoleColor TextColor { get; set; }
         public int ContentWidth { get; protected set; }
         public int ContentHeight { get; protected set; }
-        public abstract Region Occlusion { get; }
-        public bool Dirty { get; set; }
-        public LangManager I18n { get; private set; }
-        public ViewEvent OnBackEvent { get; set; }
-        public ViewEvent OnClose { get; set; }
+        public abstract Region Occlusion { get; }           // Reports dimensions of entire view
+        public Region ContentOcclusion { get => Occlusion; }// Reports dimensions of contents (SHOULD for most applications be smaller than or equal in size to Occlusion)
+        public bool Dirty { get; set; }                     // Flag for whether or not view requires re-rendering
+        public LangManager I18n { get; private set; }       // Translation
+        public ViewEvent OnBackEvent { get; set; }          // Callback for [ESC] key
+        public ViewEvent OnClose { get; set; }              // Callback called immediately before controller removes view from render queue
 
         public View(ViewData parameters, LangManager lang)
         {

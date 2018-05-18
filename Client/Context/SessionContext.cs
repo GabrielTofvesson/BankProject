@@ -248,7 +248,7 @@ namespace Client
                     accountsGetter.Unsubscribe();
                     Hide("data_fetch");
 
-                    Show(GenerateList(p.Value.Split('&').ForEach(Support.FromBase64String), SubmitListener));
+                    Show(GenerateList(p.Value.Split('&').ForEach(Support.FromBase64String), ViewAccountListener));
                 };
             });
 
@@ -518,7 +518,7 @@ namespace Client
             }
         }
 
-        private void SubmitListener(View listener)
+        private void ViewAccountListener(View listener)
         {
             ButtonView view = listener as ButtonView;
 
@@ -536,7 +536,7 @@ namespace Client
                     .SetAttribute("border", (int)ConsoleColor.DarkGreen)
 
                     // Option buttons
-                    .AddNested(new ViewData("Options").AddNestedSimple("Option", GetIntlString("GENERIC_dismiss")))
+                    .AddNested(new ViewData("Options").AddNestedSimple("Option", GetIntlString("GENERIC_dismiss")).AddNestedSimple("Option", GetIntlString("SE_account_delete")))
 
                     // Message
                     .AddNestedSimple("Text",
@@ -548,7 +548,40 @@ namespace Client
                     // No translation (it's already handled)
                     LangManager.NO_LANG);
 
-                show.RegisterSelectListener((_, s, l) => Hide(show));
+                show.RegisterSelectListener((_, s, l) =>
+                {
+                    if(s==0) Hide(show);
+                    else
+                    {
+                        var ynDialog = GetView<DialogView>("yn");
+                        ynDialog.Text = GetIntlString("SE_account_delete_warn");
+                        ynDialog.RegisterSelectListener((v, i, str) =>
+                        {
+                            var stall = GetView<TextView>("stall");
+                            stall.Text = GetIntlString("SE_account_delete_stall");
+                            Show(stall);
+                            if (i == 1)
+                            {
+                                Promise p = Promise.AwaitPromise(interactor.CloseAccount(name));
+                                p.Subscribe = deleteAwait =>
+                                {
+                                    if (bool.Parse(deleteAwait.Value))
+                                    {
+                                        accountChange = true;
+                                        controller.Popup(GetIntlString("SE_account_delete_success"), 1500, ConsoleColor.Green, () => {
+                                            bool closed = false;
+                                            controller.CloseIf(predV => closed = !closed && predV is ListView);
+                                            Hide(show);
+                                        });
+                                    }
+                                    else controller.Popup(GetIntlString("SE_account_delete_fail"), 2000, ConsoleColor.Red);
+                                    Hide(stall);
+                                };
+                            }
+                        });
+                        Show(ynDialog);
+                    }
+                });
                 Show(show);
             }
 

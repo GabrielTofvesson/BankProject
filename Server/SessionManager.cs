@@ -19,6 +19,14 @@ namespace Server
             this.sidLength = sidLength < 10 ? 10 : sidLength;
         }
 
+        public bool HasSession(string sess, bool byUserName = false)
+        {
+            foreach (var session in Sessions)
+                if ((byUserName && session.user.Name.Equals(sess)) || (!byUserName && session.sessionID.Equals(sess)))
+                    return true;
+            return false;
+        }
+
         public string GetSession(Database.User user, string invalidSID)
         {
             Update();
@@ -70,11 +78,11 @@ namespace Server
             return;
         }
 
-        public bool Refresh(string sid)
+        public bool Refresh(string sid, bool asUser = false)
         {
             Update();
             for (int i = sessions.Count - 1; i >= 0; --i)
-                if (sessions[i].sessionID.Equals(sid))
+                if ((asUser && sessions[i].user.Name.Equals(sid)) || (!asUser && sessions[i].sessionID.Equals(sid)))
                 {
                     Session s = sessions[i];
                     s.expiry = DateTime.Now.Ticks + timeout;

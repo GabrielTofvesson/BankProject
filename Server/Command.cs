@@ -74,6 +74,7 @@ namespace Server
             bool wasFlag = true;
             for (int i = 1; i<parts.Length; ++i)
             {
+                if (parts[i].Length == 0) continue;
                 if (parts[i].StartsWith("-") && parts[i].Length==2)
                 {
                     if (reconstruct.Length != 0)

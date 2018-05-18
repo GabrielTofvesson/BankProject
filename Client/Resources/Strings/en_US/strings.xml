@@ -124,6 +124,11 @@ Balance: $1 SEK</Entry>
 	<Entry name="SE_account_stall">Creating account...</Entry>
 	<Entry name="SE_account_exists">Account "$0" already exists!</Entry>
 	<Entry name="SE_account_success">Account successfully created!</Entry>
+	<Entry name="SE_account_delete">Delete account</Entry>
+	<Entry name="SE_account_delete_warn">Are you sure you want to delete this account?</Entry>
+	<Entry name="SE_account_delete_success">Account successfully deleted!</Entry>
+	<Entry name="SE_account_delete_fail">Account couldn't be deleted!</Entry>
+	<Entry name="SE_account_delete_stall">Deleting...</Entry>
 	<Entry name="SE_exit_prompt">Are you sure you would like log out and exit?</Entry>
 
 	<Entry name="GENERIC_fetch">Fetching data...</Entry>

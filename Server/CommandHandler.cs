@@ -32,6 +32,32 @@ namespace Server
 
         public bool HandleCommand(string cmd)
         {
+            
+            // Find leading and trailing spaces
+            int pre = 0, post = cmd.Length;
+            bool preS = false, postS = false;
+            for(int i = 0; i<cmd.Length; ++i)
+            {
+                if(cmd[i]!=' ')
+                {
+                    pre = i;
+                    if (postS) break;
+                    else preS = true;
+                }
+                if(cmd[cmd.Length - 1 - i]!=' ')
+                {
+                    post = cmd.Length - i;
+                    if (preS) break;
+                    else postS = true;
+                }
+            }
+
+            // The entire command is just blank spaces
+            if (post < 2 || pre>post) return false;
+
+            // Trim leading and trailing spaces
+            cmd = cmd.Substring(pre, post - pre);
+
             foreach (var command in commands)
                 if (command.Item1.Invoke(cmd))
                     return true;
